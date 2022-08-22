@@ -1,0 +1,12 @@
+BasedOnStyle: Google
+IndentWidth: 2
+IncludeBlocks: Preserve
+IncludeCategories:
+  - Regex: '^".*"'
+    Priority: -1
+  - Regex: '^<[^/.]*>'
+    Priority: 3
+  # other system includes: '<...>' without further conditions
+  - Regex: '^<.*>'
+    Priority: 2
+  # all headers not explicitely listed will be assigned to the last group
