@@ -18,6 +18,10 @@ fn vs_main(
     return out;
 }
 
+fn other(a: int32, b:int32) -> int32 {
+    return a + b;
+}
+
 // Fragment shader
 
 @fragment

@@ -4,6 +4,8 @@
 
 #include <tree_sitter_wgsl.h>
 
+#include "util.hpp"
+
 #include "cppts/node.hpp"
 #include "cppts/parser.hpp"
 #include "cppts/query.hpp"
@@ -12,42 +14,122 @@
 #include <filesystem>
 #include <fstream>
 
-std::string load_file(const std::filesystem::path& fn) {
-  static const std::filesystem::path test_dir =
-      std::filesystem::path{__FILE__}.parent_path();
-  std::stringstream ss;
-  std::ifstream ifs{test_dir / fn};
-  ifs.exceptions(std::ifstream::failbit);
-  ss << ifs.rdbuf();
-  return ss.str();
+cppts::Parser parser{tree_sitter_wgsl()};
+
+size_t countMatches(cppts::QueryCursor& cursor) {
+  size_t n = 0;
+  cppts::Match match;
+  while (cursor.nextMatch(match)) {
+    n++;
+  }
+  return n;
 }
 
-TEST_CASE("Simple parsing works", "[parsing]") {
-  cppts::Parser parser{tree_sitter_wgsl()};
-
+TEST_CASE("Query API", "[parsing]") {
   std::string source = load_file("simple.wgsl");
 
-  cppts::Tree tree{
-      parser,
-      source,
-  };
+  cppts::Tree tree{parser, source};
 
   std::string query_string =
       "(function_declaration (attribute (identifier) @functype) name: "
       "(identifier) @funcname) @thefunc";
 
-  cppts::Query query{tree_sitter_wgsl(), query_string};
+  SECTION("Verbose API") {
+    auto query = cppts::Query::create(tree_sitter_wgsl(), query_string);
+    cppts::QueryCursor queryCursor = query->exec(tree.rootNode());
+    REQUIRE(countMatches(queryCursor) == 2);
+  }
 
-  cppts::QueryCursor queryCursor = query.exec(tree.rootNode());
+  SECTION("Tree query") {
+    auto cursor = tree.query(query_string);
+    REQUIRE(countMatches(cursor) == 2);
+  }
 
-  cppts::Match match;
-  REQUIRE(queryCursor.nextMatch(match));
-  REQUIRE(match["funcname"].node().str() == "vs_main");
-  REQUIRE(match["functype"].node().str() == "vertex");
+  SECTION("Node query") {
+    auto cursor = tree.rootNode().query(query_string);
+    REQUIRE(countMatches(cursor) == 2);
+  }
 
-  REQUIRE(queryCursor.nextMatch(match));
-  REQUIRE(match["funcname"].node().str() == "fs_main");
-  REQUIRE(match["functype"].node().str() == "fragment");
+  SECTION("Alternative match getter") {
+    auto cursor = tree.rootNode().query(query_string);
+    REQUIRE(cursor.nextMatch());
+    REQUIRE(cursor.nextMatch());
+    REQUIRE_FALSE(cursor.nextMatch());
+  }
+}
 
-  REQUIRE(!queryCursor.nextMatch(match));
+TEST_CASE("Query captures", "[parsing]") {
+  cppts::Tree tree{parser, load_file("simple.wgsl")};
+
+  SECTION("All functions") {
+    std::string query_string =
+        "(function_declaration name: "
+        "(identifier) @funcname) @thefunc";
+
+    auto queryCursor = tree.query(query_string);
+
+    cppts::Match match;
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "vs_main");
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "other");
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "fs_main");
+
+    REQUIRE(!queryCursor.nextMatch(match));
+  }
+
+  SECTION("Extra capture") {
+    std::string query_string =
+        "(function_declaration (attribute (identifier) @functype) name: "
+        "(identifier) @funcname) @thefunc";
+
+    auto queryCursor = tree.query(query_string);
+
+    cppts::Match match;
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "vs_main");
+    REQUIRE(match["functype"].node().str() == "vertex");
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "fs_main");
+    REQUIRE(match["functype"].node().str() == "fragment");
+
+    REQUIRE(!queryCursor.nextMatch(match));
+  }
+
+  SECTION("Optional capture") {
+    std::string query_string =
+        "(function_declaration (attribute (identifier) @functype)? name: "
+        "(identifier) @funcname) @thefunc";
+
+    auto queryCursor = tree.query(query_string);
+
+    cppts::Match match;
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "vs_main");
+    REQUIRE(match["functype"].node().str() == "vertex");
+    REQUIRE(match.has("funcname"));
+    REQUIRE(match.has("functype"));
+    REQUIRE(match.maybe_capture("functype") != std::nullopt);
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "other");
+    REQUIRE(match.has("funcname"));
+    REQUIRE_FALSE(match.has("functype"));
+    REQUIRE(match.maybe_capture("functype") == std::nullopt);
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "fs_main");
+    REQUIRE(match["functype"].node().str() == "fragment");
+    REQUIRE(match.has("funcname"));
+    REQUIRE(match.has("functype"));
+    REQUIRE(match.maybe_capture("functype") != std::nullopt);
+
+    REQUIRE_FALSE(queryCursor.nextMatch(match));
+  }
 }

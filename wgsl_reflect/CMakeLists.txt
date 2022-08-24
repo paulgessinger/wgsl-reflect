@@ -20,3 +20,11 @@ extern const TSLanguage *tree_sitter_wgsl(void);\n\
 }
 #endif
 ")
+
+
+add_library(wgsl_reflect STATIC
+        src/reflect.cpp)
+target_include_directories(wgsl_reflect PUBLIC include)
+target_link_libraries(wgsl_reflect PRIVATE cppts::cppts tree-sitter-wgsl)
+
+add_library(wgsl_reflect::wgsl_reflect ALIAS wgsl_reflect)

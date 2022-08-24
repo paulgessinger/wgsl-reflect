@@ -3,5 +3,7 @@
 #include "cppts/node.hpp"
 
 namespace cppts {
-QueryCursor Query::exec(Node node) { return QueryCursor(*this, node); }
+QueryCursor Query::exec(Node node) {
+  return QueryCursor(shared_from_this(), node);
+}
 }  // namespace cppts

@@ -7,6 +7,7 @@
 namespace cppts {
 
 class Tree;
+class QueryCursor;
 
 class Node {
  public:
@@ -21,9 +22,11 @@ class Node {
   std::string_view str() const;
   std::string ast() const;
 
-  TSNode node() { return m_node; }
+  TSNode getNode() { return m_node; }
 
-  Tree& tree() { return m_tree; }
+  Tree& getTree() { return m_tree; }
+
+  QueryCursor query(const std::string& query_string);
 
  private:
   Tree& m_tree;

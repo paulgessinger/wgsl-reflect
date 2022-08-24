@@ -14,6 +14,8 @@ class Parser {
 
   TSParser* parser() { return m_parser; }
 
+  const TSLanguage * language()const {return m_language;}
+
  private:
   TSParser* m_parser{nullptr};
   const TSLanguage* m_language{nullptr};

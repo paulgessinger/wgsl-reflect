@@ -19,3 +19,4 @@ set_target_properties(cppts PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(cppts PUBLIC include)
 target_link_libraries(cppts PUBLIC tree-sitter)
 
+add_library(cppts::cppts ALIAS cppts)
