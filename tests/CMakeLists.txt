@@ -1,0 +1,21 @@
+FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.0.1 # or a later release
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+
+include(CTest)
+include(Catch)
+
+function(_add_test name file)
+    add_executable(${name} ${file})
+    target_link_libraries(${name} PRIVATE Catch2::Catch2WithMain)
+    target_link_libraries(${name} PUBLIC cppts tree-sitter-wgsl)
+    catch_discover_tests(${name})
+endfunction()
+
+_add_test(test_parser test_parser.cpp)
