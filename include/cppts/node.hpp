@@ -18,7 +18,7 @@ class Node {
 
   unsigned int length() const { return end() - start(); }
 
-  std::string_view code() const;
+  std::string_view str() const;
   std::string ast() const;
 
   TSNode node() { return m_node; }
@@ -31,7 +31,7 @@ class Node {
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Node& node) {
-  os << node.code();
+  os << node.str();
 
   return os;
 }

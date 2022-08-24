@@ -105,6 +105,7 @@ inline Capture Match::capture(const std::string& name) {
       return Capture{*this, cap};
     }
   }
+  throw std::invalid_argument{"Capture with name "+ name +" does not exist"};
 }
 
 inline Capture Match::operator[](const std::string& name) {
