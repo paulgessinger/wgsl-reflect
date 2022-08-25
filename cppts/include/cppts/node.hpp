@@ -8,6 +8,7 @@ namespace cppts {
 
 class Tree;
 class QueryCursor;
+class Cursor;
 
 class Node {
  public:
@@ -27,6 +28,46 @@ class Node {
   Tree& getTree() { return m_tree; }
 
   QueryCursor query(const std::string& query_string);
+
+  Cursor cursor();
+
+  bool operator==(const Node& other) const;
+
+  const char* type() const { return ts_node_type(m_node); }
+
+  bool isNull() const { return ts_node_is_null(m_node); }
+
+  operator bool() const { return !isNull(); }
+
+  bool isNamed() const { return ts_node_is_named(m_node); }
+
+  Node parent() { return Node{m_tree, ts_node_parent(m_node)}; }
+
+  Node child(uint32_t i) { return Node{m_tree, ts_node_child(m_node, i)}; }
+  Node child(const std::string& fieldName) {
+    return Node{m_tree, ts_node_child_by_field_name(m_node, fieldName.c_str(),
+                                                    fieldName.size())};
+  }
+
+  Node namedChild(uint32_t i) {
+    return Node{m_tree, ts_node_named_child(m_node, i)};
+  }
+
+  uint32_t childCount() const { return ts_node_child_count(m_node); }
+
+  uint32_t namedChildCount() const { return ts_node_named_child_count(m_node); }
+
+  Node nextSibling() { return Node{m_tree, ts_node_next_sibling(m_node)}; }
+
+  Node prevSibling() { return Node{m_tree, ts_node_prev_sibling(m_node)}; }
+
+  Node nextNamedSibling() {
+    return Node{m_tree, ts_node_next_named_sibling(m_node)};
+  }
+
+  Node prevNamedSibling() {
+    return Node{m_tree, ts_node_prev_named_sibling(m_node)};
+  }
 
  private:
   Tree& m_tree;

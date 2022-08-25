@@ -37,4 +37,51 @@ class Tree {
   TSTree* m_tree{nullptr};
 };
 
+class Cursor {
+ public:
+  explicit Cursor(Node node) : m_tree{node.getTree()} {
+    m_cursor = ts_tree_cursor_new(node.getNode());
+  }
+
+  Cursor& firstChild() {
+    bool r = ts_tree_cursor_goto_first_child(&m_cursor);
+    if (!r) {
+      throw std::runtime_error{"No first child"};
+    }
+    return *this;
+  }
+
+  Cursor& nextSibling() {
+    bool r = ts_tree_cursor_goto_next_sibling(&m_cursor);
+    if (!r) {
+      throw std::runtime_error{"No next sibling"};
+    }
+    return *this;
+  }
+
+  Cursor& parent() {
+    bool r = ts_tree_cursor_goto_parent(&m_cursor);
+    if (!r) {
+      throw std::runtime_error{"No parent"};
+    }
+    return *this;
+  }
+
+  Node currentNode() {
+    return Node{m_tree, ts_tree_cursor_current_node(&m_cursor)};
+  }
+  const char* currentFieldName() {
+    return ts_tree_cursor_current_field_name(&m_cursor);
+  }
+  TSFieldId currentFieldId() {
+    return ts_tree_cursor_current_field_id(&m_cursor);
+  }
+
+  ~Cursor() { ts_tree_cursor_delete(&m_cursor); }
+
+ private:
+  TSTreeCursor m_cursor;
+  Tree& m_tree;
+};
+
 }  // namespace cppts

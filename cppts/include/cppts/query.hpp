@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace cppts {
 
@@ -66,6 +67,8 @@ class Match {
 
   std::optional<Capture> maybe_capture(const std::string& name);
 
+  std::vector<std::string> captures();
+
   Capture capture(const std::string& name);
 
   Capture operator[](const std::string& name);
@@ -92,13 +95,12 @@ class QueryCursor {
   Query& query() { return *m_query; }
 
   bool nextMatch(Match& match) {
-    if(auto m = nextMatch();m) {
+    if (auto m = nextMatch(); m) {
       match = *m;
       return true;
     }
 
     return false;
-
   }
 
   std::optional<Match> nextMatch() {
@@ -145,6 +147,18 @@ inline std::optional<Capture> Match::maybe_capture(const std::string& name) {
     }
   }
   return std::nullopt;
+}
+
+inline std::vector<std::string> Match::captures() {
+  std::vector<std::string> v;
+  for (uint32_t i = 0; i < m_match.capture_count; i++) {
+    const TSQueryCapture& cap = m_match.captures[i];
+    uint32_t caplen;
+    const char* capname = ts_query_capture_name_for_id(
+        m_queryCursor->query().getQuery(), cap.index, &caplen);
+    v.push_back(capname);
+  }
+  return v;
 }
 
 inline Capture::Capture(Match& match, const TSQueryCapture& capture)

@@ -12,4 +12,10 @@ QueryCursor Node::query(const std::string& query_string) {
   auto _query = Query::create(m_tree.getParser().language(), query_string);
   return _query->exec(*this);
 }
+Cursor Node::cursor() { return Cursor{*this}; }
+
+bool Node::operator==(const Node& other) const {
+  return ts_node_eq(m_node, other.m_node);
+}
+
 }  // namespace cppts
