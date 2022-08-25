@@ -24,33 +24,52 @@ TEST_CASE("Reflect construction", "[reflect]") {
                     std::ios_base::failure);
 }
 
+TEST_CASE("Reflect functions", "[reflect]") {
+  wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
+
+  REQUIRE(reflect.functions().size() == 3);
+}
+
 TEST_CASE("Reflect entrypoints", "[reflect]") {
   wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
 
-  REQUIRE(reflect.entries().size() == 2);
-  REQUIRE(reflect.entry(0).type == wgsl_reflect::EntryType::Vertex);
-  REQUIRE(reflect.entry(0).function.name == "vs_main");
-  REQUIRE(reflect.entry(1).type == wgsl_reflect::EntryType::Vertex);
-  REQUIRE(reflect.entry(1).function.name == "fs_main");
+  //  REQUIRE(reflect.entries().vertex.size() == 1);
+  //  REQUIRE(reflect.entries().fragment.size() == 1);
+  //  REQUIRE(reflect.entries().compute.size() == 1);
+  //
+  //  REQUIRE(reflect.vertex(0).name == "vs_main");
+  //  REQUIRE(reflect.fragment(0).name == "fs_main");
+  //  REQUIRE(reflect.compute(0).name == "other");
 }
 
-TEST_CASE("Parse functions", "[reflect]") {
+TEST_CASE("Parse function", "[reflect]") {
   cppts::Parser parser{tree_sitter_wgsl()};
 
-  std::string source = R"WGSL(
-  fn other(a: int32, b:int32) -> int32 {
+  SECTION("Multiple inputs") {
+    std::string source = R"WGSL(
+  fn other(a: i32, b:i32) -> i32 {
       return a + b;
   })WGSL";
-  cppts::Tree tree{parser, source};
+    cppts::Tree tree{parser, source};
+    wgsl_reflect::Function function{tree.rootNode()};
 
-  std::cout << tree.rootNode().ast() << std::endl;
+    REQUIRE(function.name == "other");
+    REQUIRE(function.inputs.size() == 2);
+    REQUIRE(function.inputs[0].name == "a");
+    REQUIRE(function.inputs[0].type == "i32");
+    REQUIRE(function.inputs[1].name == "b");
+    REQUIRE(function.inputs[1].type == "i32");
+  }
 
-  wgsl_reflect::Function function{tree.rootNode()};
+  SECTION("No inputs") {
+    std::string source = R"WGSL(
+  fn noarg() -> i32 {
+      return a + b;
+  })WGSL";
+    cppts::Tree tree{parser, source};
+    wgsl_reflect::Function function{tree.rootNode()};
 
-  REQUIRE(function.name == "other");
-  REQUIRE(function.inputs.size() == 2);
-  REQUIRE(function.inputs[0].name == "a");
-  REQUIRE(function.inputs[0].type == "int32");
-  REQUIRE(function.inputs[1].name == "b");
-  REQUIRE(function.inputs[1].type == "int32");
+    REQUIRE(function.name == "noarg");
+    REQUIRE(function.inputs.size() == 0);
+  }
 }

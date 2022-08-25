@@ -39,21 +39,23 @@ TEST_CASE("Query API", "[parsing]") {
   SECTION("Verbose API") {
     auto query = cppts::Query::create(tree_sitter_wgsl(), query_string);
     cppts::QueryCursor queryCursor = query->exec(tree.rootNode());
-    REQUIRE(countMatches(queryCursor) == 2);
+    REQUIRE(countMatches(queryCursor) == 4);
   }
 
   SECTION("Tree query") {
     auto cursor = tree.query(query_string);
-    REQUIRE(countMatches(cursor) == 2);
+    REQUIRE(countMatches(cursor) == 4);
   }
 
   SECTION("Node query") {
     auto cursor = tree.rootNode().query(query_string);
-    REQUIRE(countMatches(cursor) == 2);
+    REQUIRE(countMatches(cursor) == 4);
   }
 
   SECTION("Alternative match getter") {
     auto cursor = tree.rootNode().query(query_string);
+    REQUIRE(cursor.nextMatch());
+    REQUIRE(cursor.nextMatch());
     REQUIRE(cursor.nextMatch());
     REQUIRE(cursor.nextMatch());
     REQUIRE_FALSE(cursor.nextMatch());
@@ -97,6 +99,14 @@ TEST_CASE("Query captures", "[parsing]") {
     REQUIRE(match["functype"].node().str() == "vertex");
 
     REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "other");
+    REQUIRE(match["functype"].node().str() == "compute");
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "other");
+    REQUIRE(match["functype"].node().str() == "workgroup_size");
+
+    REQUIRE(queryCursor.nextMatch(match));
     REQUIRE(match["funcname"].node().str() == "fs_main");
     REQUIRE(match["functype"].node().str() == "fragment");
 
@@ -122,8 +132,14 @@ TEST_CASE("Query captures", "[parsing]") {
     REQUIRE(queryCursor.nextMatch(match));
     REQUIRE(match["funcname"].node().str() == "other");
     REQUIRE(match.has("funcname"));
-    REQUIRE_FALSE(match.has("functype"));
-    REQUIRE(match.maybe_capture("functype") == std::nullopt);
+    REQUIRE(match.has("functype"));
+    REQUIRE(match.maybe_capture("functype") != std::nullopt);
+
+    REQUIRE(queryCursor.nextMatch(match));
+    REQUIRE(match["funcname"].node().str() == "other");
+    REQUIRE(match.has("funcname"));
+    REQUIRE(match.has("functype"));
+    REQUIRE(match.maybe_capture("functype") != std::nullopt);
 
     REQUIRE(queryCursor.nextMatch(match));
     REQUIRE(match["funcname"].node().str() == "fs_main");
@@ -281,6 +297,23 @@ TEST_CASE("Node navigation", "[parsing]") {
     REQUIRE(decl.child("type").str() == "-> i32"s);
     auto body = decl.child("body").str();
     REQUIRE(body.find("return a + b;") != std::string::npos);
+  }
+
+  SECTION("Iterate children") {
+    auto decl = tree.rootNode().child(0);
+
+    uint32_t i = 0;
+    for (auto child : decl.children()) {
+      REQUIRE(child == decl.child(i));
+      i++;
+    }
+
+
+    i = 0;
+    for (auto child : decl.namedChildren()) {
+      REQUIRE(child == decl.namedChild(i));
+      i++;
+    }
   }
 
   SECTION("Cursor") {

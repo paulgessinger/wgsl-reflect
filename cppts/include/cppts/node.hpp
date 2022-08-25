@@ -69,6 +69,52 @@ class Node {
     return Node{m_tree, ts_node_prev_named_sibling(m_node)};
   }
 
+  template <bool named>
+  class ChildIterator {
+   public:
+    ChildIterator(Node& node, uint32_t index) : m_node{node}, m_index{index} {}
+
+    bool operator==(const ChildIterator& other) const {
+      return other.m_node == m_node && other.m_index == m_index;
+    }
+
+    ChildIterator& operator++() {
+      m_index++;
+      return *this;
+    }
+
+    Node operator*() {
+      if constexpr (named) {
+        return m_node.namedChild(m_index);
+      } else {
+        return m_node.child(m_index);
+      }
+    }
+
+   private:
+    Node& m_node;
+    uint32_t m_index{0};
+  };
+
+  template <typename It>
+  struct IteratorPair {
+    It _begin;
+    It _end;
+
+    It begin() { return _begin; }
+    It end() { return _end; }
+  };
+
+  IteratorPair<ChildIterator<false>> children() {
+    return {ChildIterator<false>{*this, 0},
+            ChildIterator<false>{*this, childCount()}};
+  }
+
+  IteratorPair<ChildIterator<true>> namedChildren() {
+    return {ChildIterator<true>{*this, 0},
+            ChildIterator<true>{*this, namedChildCount()}};
+  }
+
  private:
   Tree& m_tree;
   TSNode m_node;

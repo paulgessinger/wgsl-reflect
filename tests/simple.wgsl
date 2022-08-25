@@ -18,6 +18,7 @@ fn vs_main(
     return out;
 }
 
+@compute @workgroup_size(8,4,1)
 fn other(a: i32, b:i32) -> int32 {
     return a + b;
 }
