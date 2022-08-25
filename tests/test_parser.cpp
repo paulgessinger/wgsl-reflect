@@ -242,8 +242,6 @@ TEST_CASE("Node navigation", "[parsing]") {
     })WGSL";
   cppts::Tree tree{parser, source};
 
-  std::cout << tree.rootNode().ast() << std::endl;
-
   SECTION("Direct") {
     REQUIRE_FALSE(tree.rootNode().isNull());
     REQUIRE(tree.rootNode().childCount() == 1);
@@ -265,7 +263,6 @@ TEST_CASE("Node navigation", "[parsing]") {
     })S"});
 
     auto fname = decl.child(1);
-    std::cout << fname << std::endl;
     REQUIRE(fname.prevNamedSibling().isNull());
     REQUIRE(fname.nextNamedSibling() == decl.child(4));
     REQUIRE(decl.child(0).prevSibling().isNull());
