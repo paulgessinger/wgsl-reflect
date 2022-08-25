@@ -132,4 +132,56 @@ TEST_CASE("Query captures", "[parsing]") {
 
     REQUIRE_FALSE(queryCursor.nextMatch(match));
   }
+
+  SECTION("Repeating capture") {
+    std::string source = R"WGSL(
+  fn other(a: i32, b: f32) -> i32 {
+      return a + b;
+  })WGSL";
+    cppts::Tree _tree{parser, source};
+
+    auto cursor = _tree.query(R"Q(
+        (function_declaration
+          (parameter_list
+            (parameter
+              (variable_identifier_declaration
+                name: (identifier) @param.name
+                type: (type_declaration) @param.type
+              )
+            )? @param
+          )
+        ))Q");
+
+    auto a = cursor.nextMatch().value();
+    REQUIRE(a.has("param"));
+    REQUIRE(a["param.name"].node().str() == "a");
+    REQUIRE(a["param.type"].node().str() == "i32");
+
+    auto b = cursor.nextMatch().value();
+    REQUIRE(b.has("param"));
+    REQUIRE(b["param.name"].node().str() == "b");
+    REQUIRE(b["param.type"].node().str() == "f32");
+  }
+
+  SECTION("Repeating capture, no match") {
+    std::string source = R"WGSL(
+    fn other() -> i32 {
+        return a + b;
+    })WGSL";
+    cppts::Tree _tree{parser, source};
+
+    auto cursor = _tree.query(R"Q(
+          (function_declaration
+            (parameter_list
+              (parameter
+                (variable_identifier_declaration
+                  name: (identifier) @param.name
+                  type: (type_declaration (identifier) @param.type)
+                )
+              )? @param
+            )
+          ))Q");
+
+    REQUIRE(countMatches(cursor) == 0);
+  }
 }

@@ -43,7 +43,14 @@ TEST_CASE("Parse functions", "[reflect]") {
   })WGSL";
   cppts::Tree tree{parser, source};
 
+  std::cout << tree.rootNode().ast() << std::endl;
+
   wgsl_reflect::Function function{tree.rootNode()};
 
   REQUIRE(function.name == "other");
+  REQUIRE(function.inputs.size() == 2);
+  REQUIRE(function.inputs[0].name == "a");
+  REQUIRE(function.inputs[0].type == "int32");
+  REQUIRE(function.inputs[1].name == "b");
+  REQUIRE(function.inputs[1].type == "int32");
 }

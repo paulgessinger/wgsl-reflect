@@ -21,9 +21,15 @@ struct Input {
   std::string typeName;
 };
 
+struct FunctionInput {
+  std::string name;
+  std::string type;
+};
+
 struct Function {
   explicit Function(cppts::Node node);
   std::string name;
+  std::vector<FunctionInput> inputs;
 };
 
 enum class EntryType { Vertex, Fragment, Compute };

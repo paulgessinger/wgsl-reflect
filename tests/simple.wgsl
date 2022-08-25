@@ -18,7 +18,7 @@ fn vs_main(
     return out;
 }
 
-fn other(a: int32, b:int32) -> int32 {
+fn other(a: i32, b:i32) -> int32 {
     return a + b;
 }
 
