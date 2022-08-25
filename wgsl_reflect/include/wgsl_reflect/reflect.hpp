@@ -4,6 +4,7 @@
 #include <memory>
 #include <span>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace cppts {
@@ -34,18 +35,24 @@ struct Function {
 
 enum class EntryType { Vertex, Fragment, Compute };
 
-struct Entry {
-  EntryType type;
-  Function& function;
-};
+// struct Entry {
+//   EntryType type;
+//   Function& function;
+// };
 
 class Reflect {
  public:
   explicit Reflect(const std::filesystem::path& source_file);
   explicit Reflect(const std::string& source);
 
-  [[nodiscard]] const Entry& entry(size_t i) const;
-  [[nodiscard]] std::span<const Entry> entries() const;
+  //  [[nodiscard]] const Entry& entry(size_t i) const;
+  [[nodiscard]] const auto& entries() const { return m_entries; }
+
+  const auto& functions() const {return m_functions;}
+
+  [[nodiscard]] const Function& fragment(size_t i) const;
+  [[nodiscard]] const Function& vertex(size_t i) const;
+  [[nodiscard]] const Function& compute(size_t i) const;
 
   ~Reflect();
 
@@ -54,12 +61,19 @@ class Reflect {
 
   void parseFunctions();
 
+  void parseEntrypoints();
+
   std::string m_source;
 
   std::unique_ptr<cppts::Parser> m_parser{nullptr};
   std::unique_ptr<cppts::Tree> m_tree{nullptr};
 
-  std::vector<Function> m_functions;
-  std::vector<Entry> m_entries;
+  struct {
+    std::vector<std::reference_wrapper<Function>> vertex;
+    std::vector<std::reference_wrapper<Function>> fragment;
+    std::vector<std::reference_wrapper<Function>> compute;
+  } m_entries;
+
+  std::unordered_map<std::string, Function> m_functions;
 };
 }  // namespace wgsl_reflect

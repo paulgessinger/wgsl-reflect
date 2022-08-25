@@ -33,13 +33,13 @@ TEST_CASE("Reflect functions", "[reflect]") {
 TEST_CASE("Reflect entrypoints", "[reflect]") {
   wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
 
-  //  REQUIRE(reflect.entries().vertex.size() == 1);
-  //  REQUIRE(reflect.entries().fragment.size() == 1);
-  //  REQUIRE(reflect.entries().compute.size() == 1);
-  //
-  //  REQUIRE(reflect.vertex(0).name == "vs_main");
-  //  REQUIRE(reflect.fragment(0).name == "fs_main");
-  //  REQUIRE(reflect.compute(0).name == "other");
+  REQUIRE(reflect.entries().vertex.size() == 1);
+  REQUIRE(reflect.entries().fragment.size() == 1);
+  REQUIRE(reflect.entries().compute.size() == 1);
+
+  REQUIRE(reflect.vertex(0).name == "vs_main");
+  REQUIRE(reflect.fragment(0).name == "fs_main");
+  REQUIRE(reflect.compute(0).name == "other");
 }
 
 TEST_CASE("Parse function", "[reflect]") {
