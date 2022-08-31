@@ -95,33 +95,29 @@ Function::Function(cppts::Node node) {
       (parameter_list)? @params
     ))Q");
 
-  std::cout << node.ast() << std::endl;
-  //  return;
-
   cppts::Match match;
   while (cursor.nextMatch(match)) {
     name = match["funcname"].node().str();
 
     if (match.has("params")) {
       auto params = match["params"].node();
-      FunctionInput input;
-      bool haveName = false;
-      for (uint32_t i = 0; i < params.namedChildCount(); i++) {
-        auto param = params.namedChild(i).child(0);
-        std::cout << " - " << param.type() << std::endl;
-        if (param.type() == "attribute"s) {
-          //          continue;
+      for (auto param : params.namedChildren()) {
+        FunctionInput input;
+        bool haveName = false;
+        for (auto pchild : param.namedChildren()) {
+          if (pchild.type() == "variable_identifier_declaration"s) {
+            haveName = true;
+            input.name = pchild.child("name").str();
+            input.type = pchild.child("type").str();
+          } else if (pchild.type() == "attribute"s) {
+            input.attributes.push_back(
+                InputAttribute{std::string{pchild.namedChild(0).str()},
+                               std::string{pchild.namedChild(1).str()}});
+          }
         }
-        if (param.type() == "variable_identifier_declaration"s) {
-          input.name = param.child("name").str();
-          input.type = param.child("type").str();
-          std::cout << input.name << " -> " << input.type << std::endl;
-          haveName = true;
-        }
+        assert(haveName && "Did not find input name");
+        inputs.push_back(std::move(input));
       }
-      //      assert(haveName && "Did not find input name");
-      std::cout << "haveName: " << haveName << std::endl;
-      inputs.push_back(std::move(input));
     }
   }
 }
