@@ -46,7 +46,7 @@ void Reflect::parseFunctions() {
   std::string query_string = "(function_declaration) @thefunc";
 
   auto getStruct = [this](const std::string& s) -> std::optional<Structure> {
-    if(auto it = m_structures.find(s);it!=m_structures.end()) {
+    if (auto it = m_structures.find(s); it != m_structures.end()) {
       return it->second;
     }
     return std::nullopt;
@@ -136,25 +136,39 @@ Function::Function(
   name = node.child("name").str();
 
   for (auto child : node.namedChildren()) {
-    if (child.type() != "parameter_list"s) {
-      continue;
-    }
-
-    for (auto param : child.namedChildren()) {
-      inputs.push_back(parseInput(param));
-      if (!structLookup) {
-        continue;
+    if (child.type() == "attribute"s) {
+      std::string name{child.namedChild(0).str()};
+      std::string value = "";
+      for (auto next = child.namedChild(0).nextSibling(); !next.isNull();
+           next = next.nextSibling()) {
+        if (next.str() == "("s || next.str() == ")"s) {
+          continue;
+        }
+        value += next.str();
       }
-      if (auto _struct = structLookup(inputs.back().type); _struct) {
-        inputs.pop_back();
-        for (auto member : _struct->members) {
-          inputs.push_back(member);
+      attributes.emplace(name, value);
+    } else if (child.type() == "parameter_list"s) {
+      for (auto param : child.namedChildren()) {
+        inputs.push_back(parseInput(param));
+        if (!structLookup) {
+          continue;
+        }
+        if (auto _struct = structLookup(inputs.back().type); _struct) {
+          inputs.pop_back();
+          for (auto member : _struct->members) {
+            inputs.push_back(member);
+          }
         }
       }
     }
-
-    break;
   }
+}
+std::optional<std::string_view> Function::attribute(
+    const std::string& name) const {
+  if (auto it = attributes.find(name); it != attributes.end()) {
+    return it->second;
+  }
+  return std::nullopt;
 }
 
 Structure::Structure(cppts::Node node) {

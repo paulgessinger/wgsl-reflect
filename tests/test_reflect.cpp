@@ -15,6 +15,8 @@
 
 #include <stdexcept>
 
+using namespace std::string_literals;
+
 TEST_CASE("Reflect construction", "[reflect]") {
   std::string source = load_file("simple.wgsl");
   REQUIRE_NOTHROW(wgsl_reflect::Reflect{source});
@@ -140,6 +142,23 @@ TEST_CASE("Parse function", "[reflect]") {
     REQUIRE(function.inputs.size() == 0);
   }
 
+  SECTION("Attributes") {
+    std::string source = R"WGSL(
+      @compute @workgroup_size(8,4,1)
+      fn other(a: i32, b:i32) -> int32 {
+          return a + b;
+      }
+    )WGSL";
+
+    cppts::Tree tree{parser, source};
+    wgsl_reflect::Function function{tree.rootNode().child(0)};
+    REQUIRE(function.name == "other");
+    REQUIRE(function.inputs.size() == 2);
+    REQUIRE(function.attribute("compute").value() == ""s);
+    REQUIRE_FALSE(function.attribute("vertex").has_value());
+    REQUIRE(function.attribute("workgroup_size").value() == "8,4,1"s);
+  }
+
   SECTION("Flat inputs with locations") {
     std::string source = R"WGSL(
     @fragment
@@ -151,6 +170,8 @@ TEST_CASE("Parse function", "[reflect]") {
     wgsl_reflect::Function function{tree.rootNode().child(0)};
     REQUIRE(function.name == "main");
     REQUIRE(function.inputs.size() == 2);
+    REQUIRE(function.attribute("fragment").value() == ""s);
+    REQUIRE_FALSE(function.attribute("vertex").has_value());
 
     auto& in1 = function.inputs[0];
     REQUIRE(in1.name == "in1");

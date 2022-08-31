@@ -38,8 +38,12 @@ struct Function {
   explicit Function(cppts::Node node,
                     std::function<std::optional<Structure>(const std::string&)>
                         structLookup = {});
+
+  std::optional<std::string_view> attribute(const std::string& name) const;
+
   std::string name;
   std::vector<Input> inputs;
+  std::unordered_map<std::string, std::string> attributes;
 };
 
 class Reflect {
