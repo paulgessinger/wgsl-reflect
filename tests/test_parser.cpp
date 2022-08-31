@@ -282,17 +282,15 @@ TEST_CASE("Node navigation", "[parsing]") {
     })S"});
 
     auto fname = decl.child(1);
-    REQUIRE_THROWS_AS(decl.child(0).prevSibling(), std::out_of_range);
-    REQUIRE_THROWS_AS(fname.prevNamedSibling(), std::out_of_range);
+    REQUIRE(fname.prevNamedSibling().isNull());
     REQUIRE(fname.nextNamedSibling() == decl.child(4));
-    REQUIRE_THROWS_AS(decl.child(0).prevSibling(), std::out_of_range);
+    REQUIRE(decl.child(0).prevSibling().isNull());
+    REQUIRE_FALSE(decl.child(0).prevSibling());
     REQUIRE_FALSE(decl.child(0).isNamed());
     REQUIRE(decl.child(1).isNamed());
 
-    REQUIRE_THROWS_AS(decl.child(decl.childCount() - 1).nextSibling(),
-                      std::out_of_range);
-    REQUIRE_THROWS_AS(decl.child(decl.childCount() - 1).nextNamedSibling(),
-                      std::out_of_range);
+    REQUIRE_FALSE(decl.child(decl.childCount() - 1).nextSibling());
+    REQUIRE_FALSE(decl.child(decl.childCount() - 1).nextNamedSibling());
 
     REQUIRE(decl.child(0).str() == "fn"s);
     REQUIRE(decl.child(0).type() == "fn"s);

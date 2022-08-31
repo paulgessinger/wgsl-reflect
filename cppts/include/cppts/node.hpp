@@ -69,37 +69,16 @@ class Node {
 
   uint32_t namedChildCount() const { return ts_node_named_child_count(m_node); }
 
-  Node nextSibling() {
+  Node nextSibling() { return Node{m_tree, ts_node_next_sibling(m_node)}; }
 
-    auto node = Node{m_tree, ts_node_next_sibling(m_node)};
-    if (node.isNull()) {
-      throw std::out_of_range{"No next sibling"};
-    }
-    return node;
-  }
-
-  Node prevSibling() {
-    auto node = Node{m_tree, ts_node_prev_sibling(m_node)};
-    if (node.isNull()) {
-      throw std::out_of_range{"No prev sibling"};
-    }
-    return node;
-  }
+  Node prevSibling() { return Node{m_tree, ts_node_prev_sibling(m_node)}; }
 
   Node nextNamedSibling() {
-    auto node =  Node{m_tree, ts_node_next_named_sibling(m_node)};
-    if (node.isNull()) {
-      throw std::out_of_range{"No next named sibling"};
-    }
-    return node;
+    return Node{m_tree, ts_node_next_named_sibling(m_node)};
   }
 
   Node prevNamedSibling() {
-    auto node = Node{m_tree, ts_node_prev_named_sibling(m_node)};
-    if (node.isNull()) {
-      throw std::out_of_range{"No prev named sibling"};
-    }
-    return node;
+    return Node{m_tree, ts_node_prev_named_sibling(m_node)};
   }
 
   template <bool named>
