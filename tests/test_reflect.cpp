@@ -24,10 +24,68 @@ TEST_CASE("Reflect construction", "[reflect]") {
                     std::ios_base::failure);
 }
 
+TEST_CASE("Reflect structs", "[reflect]") {
+  wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
+
+  REQUIRE(reflect.structures().size() == 2);
+
+  auto vertexInput = reflect.structure("VertexInput");
+  REQUIRE(vertexInput.name == "VertexInput");
+  REQUIRE(vertexInput.members.size() == 2);
+
+  auto vertexOutput = reflect.structure("VertexOutput");
+  REQUIRE(vertexOutput.name == "VertexOutput");
+  REQUIRE(vertexOutput.members.size() == 2);
+}
+
 TEST_CASE("Reflect functions", "[reflect]") {
   wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
 
   REQUIRE(reflect.functions().size() == 3);
+
+  auto vs_main = reflect.function("vs_main");
+  REQUIRE(vs_main.name == "vs_main");
+  REQUIRE(vs_main.inputs.size() == 2);
+
+  REQUIRE(vs_main.inputs[0].name == "position");
+  REQUIRE(vs_main.inputs[0].type == "vec3<f32>");
+  REQUIRE(vs_main.inputs[0].attributes.size() == 1);
+  REQUIRE(vs_main.inputs[0].attributes[0].name == "location");
+  REQUIRE(vs_main.inputs[0].attributes[0].value == "0");
+
+  REQUIRE(vs_main.inputs[1].name == "color");
+  REQUIRE(vs_main.inputs[1].type == "vec3<f32>");
+  REQUIRE(vs_main.inputs[1].attributes.size() == 1);
+  REQUIRE(vs_main.inputs[1].attributes[0].name == "location");
+  REQUIRE(vs_main.inputs[1].attributes[0].value == "1");
+
+  auto fs_main = reflect.function("fs_main");
+  REQUIRE(fs_main.name == "fs_main");
+  REQUIRE(fs_main.inputs.size() == 2);
+
+  REQUIRE(fs_main.inputs[0].name == "clip_position");
+  REQUIRE(fs_main.inputs[0].type == "vec4<f32>");
+  REQUIRE(fs_main.inputs[0].attributes.size() == 1);
+  REQUIRE(fs_main.inputs[0].attributes[0].name == "builtin");
+  REQUIRE(fs_main.inputs[0].attributes[0].value == "position");
+
+  REQUIRE(fs_main.inputs[1].name == "color");
+  REQUIRE(fs_main.inputs[1].type == "vec3<f32>");
+  REQUIRE(fs_main.inputs[1].attributes.size() == 1);
+  REQUIRE(fs_main.inputs[1].attributes[0].name == "location");
+  REQUIRE(fs_main.inputs[1].attributes[0].value == "0");
+
+  auto other = reflect.function("other");
+  REQUIRE(other.name == "other");
+  REQUIRE(other.inputs.size() == 2);
+
+  REQUIRE(other.inputs[0].name == "a");
+  REQUIRE(other.inputs[0].type == "i32");
+  REQUIRE(other.inputs[0].attributes.size() == 0);
+
+  REQUIRE(other.inputs[1].name == "b");
+  REQUIRE(other.inputs[1].type == "i32");
+  REQUIRE(other.inputs[1].attributes.size() == 0);
 }
 
 TEST_CASE("Reflect entrypoints", "[reflect]") {
@@ -38,8 +96,11 @@ TEST_CASE("Reflect entrypoints", "[reflect]") {
   REQUIRE(reflect.entries().compute.size() == 1);
 
   REQUIRE(reflect.vertex(0).name == "vs_main");
+  REQUIRE(reflect.vertex(0).name == reflect.function("vs_main").name);
   REQUIRE(reflect.fragment(0).name == "fs_main");
+  REQUIRE(reflect.fragment(0).name == reflect.function("fs_main").name);
   REQUIRE(reflect.compute(0).name == "other");
+  REQUIRE(reflect.compute(0).name == reflect.function("other").name);
 }
 
 TEST_CASE("Parse function", "[reflect]") {
@@ -108,7 +169,7 @@ TEST_CASE("Parse function", "[reflect]") {
     REQUIRE(in2.attributes[1].value == "flat");
   }
 
-  SECTION("Struct parameter not resolved") {
+  SECTION("Structure parameter not resolved") {
     std::string source = R"WGSL(
     @vertex
     fn main(input: VertexInput) -> VertexOutput {
@@ -137,11 +198,11 @@ TEST_CASE("Parse function", "[reflect]") {
     )WGSL";
     cppts::Tree tree{parser, source};
 
-    wgsl_reflect::Struct _struct{tree.rootNode().namedChild(0)};
+    wgsl_reflect::Structure _struct{tree.rootNode().namedChild(0)};
 
     wgsl_reflect::Function function{
         tree.rootNode().namedChild(1),
-        [&](const std::string& s) -> std::optional<wgsl_reflect::Struct> {
+        [&](const std::string& s) -> std::optional<wgsl_reflect::Structure> {
           if (s == "VertexInput") {
             return _struct;
           } else {
@@ -180,14 +241,14 @@ TEST_CASE("Parse function", "[reflect]") {
     )WGSL";
     cppts::Tree tree{parser, source};
 
-    wgsl_reflect::Struct input1{tree.rootNode().namedChild(0)};
+    wgsl_reflect::Structure input1{tree.rootNode().namedChild(0)};
     REQUIRE(input1.name == "VertexInput1");
-    wgsl_reflect::Struct input2{tree.rootNode().namedChild(1)};
+    wgsl_reflect::Structure input2{tree.rootNode().namedChild(1)};
     REQUIRE(input2.name == "VertexInput2");
 
     wgsl_reflect::Function function{
         tree.rootNode().namedChild(2),
-        [&](const std::string& s) -> std::optional<wgsl_reflect::Struct> {
+        [&](const std::string& s) -> std::optional<wgsl_reflect::Structure> {
           if (s == "VertexInput1") {
             return input1;
           } else {
@@ -223,11 +284,11 @@ TEST_CASE("Parse function", "[reflect]") {
     )WGSL";
     cppts::Tree tree{parser, source};
 
-    wgsl_reflect::Struct input{tree.rootNode().namedChild(0)};
+    wgsl_reflect::Structure input{tree.rootNode().namedChild(0)};
 
     wgsl_reflect::Function function{
         tree.rootNode().namedChild(1),
-        [&](const std::string& s) -> std::optional<wgsl_reflect::Struct> {
+        [&](const std::string& s) -> std::optional<wgsl_reflect::Structure> {
           if (s == "VertexInput") {
             return input;
           }
@@ -254,8 +315,8 @@ TEST_CASE("Parse struct", "[reflect]") {
 
   SECTION("Invalid input") {
     cppts::Tree tree{parser, "fn add(a: i32, b: i32) -> i32 {return a+b;}"};
-    REQUIRE_THROWS(wgsl_reflect::Struct{tree.rootNode()});
-    REQUIRE_THROWS(wgsl_reflect::Struct{tree.rootNode().child(0)});
+    REQUIRE_THROWS(wgsl_reflect::Structure{tree.rootNode()});
+    REQUIRE_THROWS(wgsl_reflect::Structure{tree.rootNode().child(0)});
   }
 
   SECTION("Single attributes") {
@@ -266,7 +327,7 @@ TEST_CASE("Parse struct", "[reflect]") {
       };
     )WGSL";
     cppts::Tree tree{parser, source};
-    wgsl_reflect::Struct _struct{tree.rootNode().child(0)};
+    wgsl_reflect::Structure _struct{tree.rootNode().child(0)};
 
     REQUIRE(_struct.name == "VertexInput");
     REQUIRE(_struct.members.size() == 2);
@@ -292,7 +353,7 @@ TEST_CASE("Parse struct", "[reflect]") {
     )WGSL";
 
     cppts::Tree tree{parser, source};
-    wgsl_reflect::Struct _struct{tree.rootNode().child(0)};
+    wgsl_reflect::Structure _struct{tree.rootNode().child(0)};
 
     REQUIRE(_struct.name == "SuperInput");
     REQUIRE(_struct.members.size() == 2);
@@ -311,19 +372,3 @@ TEST_CASE("Parse struct", "[reflect]") {
     REQUIRE(_struct.members[1].attributes[0].value == "0");
   }
 }
-
-// struct A {
-//   @location(0) x: f32,
-//                    // Despite locations being 16-bytes, x and y cannot share
-//                    a location
-//                    @location(1) y: f32
-// }
-//
-//// in1 occupies locations 0 and 1.
-//// in2 occupies location 2.
-//// The return value occupies location 0.
-//@fragment
-//    fn fragShader(in1: A, @location(2) in2: f32) -> @location(0) vec4<f32> {
-//  // ...
-//}
-//

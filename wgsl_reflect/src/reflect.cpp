@@ -26,17 +26,36 @@ void Reflect::initialize() {
   m_parser = std::make_unique<cppts::Parser>(tree_sitter_wgsl());
   m_tree = std::make_unique<cppts::Tree>(*m_parser, m_source);
 
+  parseStructures();
   parseFunctions();
   parseEntrypoints();
+}
+
+void Reflect::parseStructures() {
+  std::string query_string = "(struct_declaration) @thestruct";
+
+  auto cursor = m_tree->query(query_string);
+  cppts::Match match;
+  while (cursor.nextMatch(match)) {
+    Structure _struct{match["thestruct"].node()};
+    m_structures.emplace(_struct.name, std::move(_struct));
+  }
 }
 
 void Reflect::parseFunctions() {
   std::string query_string = "(function_declaration) @thefunc";
 
+  auto getStruct = [this](const std::string& s) -> std::optional<Structure> {
+    if(auto it = m_structures.find(s);it!=m_structures.end()) {
+      return it->second;
+    }
+    return std::nullopt;
+  };
+
   auto cursor = m_tree->query(query_string);
   cppts::Match match;
   while (cursor.nextMatch(match)) {
-    Function function{match["thefunc"].node()};
+    Function function{match["thefunc"].node(), getStruct};
     m_functions.emplace(function.name, std::move(function));
   }
 }
@@ -110,7 +129,7 @@ Input parseInput(cppts::Node node) {
 
 Function::Function(
     cppts::Node node,
-    std::function<std::optional<Struct>(const std::string&)> structLookup) {
+    std::function<std::optional<Structure>(const std::string&)> structLookup) {
   if (node.type() != "function_declaration"s) {
     throw std::invalid_argument{"Given node is not a function declaration"};
   }
@@ -138,7 +157,7 @@ Function::Function(
   }
 }
 
-Struct::Struct(cppts::Node node) {
+Structure::Structure(cppts::Node node) {
   if (node.type() != "struct_declaration"s) {
     throw std::invalid_argument{"Given node is not a struct declaration"};
   }

@@ -27,8 +27,8 @@ struct Input {
   std::vector<InputAttribute> attributes;
 };
 
-struct Struct {
-  explicit Struct(cppts::Node node);
+struct Structure {
+  explicit Structure(cppts::Node node);
 
   std::string name;
   std::vector<Input> members;
@@ -36,7 +36,7 @@ struct Struct {
 
 struct Function {
   explicit Function(cppts::Node node,
-                    std::function<std::optional<Struct>(const std::string&)>
+                    std::function<std::optional<Structure>(const std::string&)>
                         structLookup = {});
   std::string name;
   std::vector<Input> inputs;
@@ -52,6 +52,15 @@ class Reflect {
 
   const auto& functions() const { return m_functions; }
 
+  const auto& function(const std::string& name) const {
+    return m_functions.at(name);
+  }
+
+  const auto& structures() const { return m_structures; }
+  const auto& structure(const std::string& name) const {
+    return m_structures.at(name);
+  }
+
   [[nodiscard]] const Function& fragment(size_t i) const;
   [[nodiscard]] const Function& vertex(size_t i) const;
   [[nodiscard]] const Function& compute(size_t i) const;
@@ -60,6 +69,8 @@ class Reflect {
 
  private:
   void initialize();
+
+  void parseStructures();
 
   void parseFunctions();
 
@@ -77,5 +88,6 @@ class Reflect {
   } m_entries;
 
   std::unordered_map<std::string, Function> m_functions;
+  std::unordered_map<std::string, Structure> m_structures;
 };
 }  // namespace wgsl_reflect
