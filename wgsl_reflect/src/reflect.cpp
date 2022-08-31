@@ -95,20 +95,33 @@ Function::Function(cppts::Node node) {
       (parameter_list)? @params
     ))Q");
 
+  std::cout << node.ast() << std::endl;
+  //  return;
+
   cppts::Match match;
   while (cursor.nextMatch(match)) {
     name = match["funcname"].node().str();
 
     if (match.has("params")) {
       auto params = match["params"].node();
+      FunctionInput input;
+      bool haveName = false;
       for (uint32_t i = 0; i < params.namedChildCount(); i++) {
         auto param = params.namedChild(i).child(0);
-        assert(param.type() == "variable_identifier_declaration"s);
-        FunctionInput input;
-        input.name = param.child("name").str();
-        input.type = param.child("type").str();
-        inputs.push_back(std::move(input));
+        std::cout << " - " << param.type() << std::endl;
+        if (param.type() == "attribute"s) {
+          //          continue;
+        }
+        if (param.type() == "variable_identifier_declaration"s) {
+          input.name = param.child("name").str();
+          input.type = param.child("type").str();
+          std::cout << input.name << " -> " << input.type << std::endl;
+          haveName = true;
+        }
       }
+      //      assert(haveName && "Did not find input name");
+      std::cout << "haveName: " << haveName << std::endl;
+      inputs.push_back(std::move(input));
     }
   }
 }

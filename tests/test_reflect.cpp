@@ -72,4 +72,49 @@ TEST_CASE("Parse function", "[reflect]") {
     REQUIRE(function.name == "noarg");
     REQUIRE(function.inputs.size() == 0);
   }
+
+  SECTION("Flat inputs with locations") {
+    std::string source = R"WGSL(
+    @fragment
+    fn main(@location(0) in1: i32, @location(2) @interpolate(flat) in2: f32) -> i32 {
+        return a + b;
+    })WGSL";
+
+    cppts::Tree tree{parser, source};
+    wgsl_reflect::Function function{tree.rootNode()};
+    REQUIRE(function.name == "main");
+    REQUIRE(function.inputs.size() == 2);
+
+    auto& in1 = function.inputs[0];
+    REQUIRE(in1.name == "in1");
+    REQUIRE(in1.type == "i32");
+    REQUIRE(in1.attributes.size() == 1);
+    REQUIRE(in1.attributes[0].name == "location");
+    REQUIRE(in1.attributes[0].value == "0");
+
+    auto& in2 = function.inputs[1];
+    REQUIRE(in2.name == "in2");
+    REQUIRE(in2.type == "f32");
+    REQUIRE(in2.attributes.size() == 2);
+    REQUIRE(in2.attributes[0].name == "location");
+    REQUIRE(in2.attributes[0].value == "2");
+    REQUIRE(in2.attributes[1].name == "interpolate");
+    REQUIRE(in2.attributes[1].value == "flat");
+  }
 }
+
+// struct A {
+//   @location(0) x: f32,
+//                    // Despite locations being 16-bytes, x and y cannot share
+//                    a location
+//                    @location(1) y: f32
+// }
+//
+//// in1 occupies locations 0 and 1.
+//// in2 occupies location 2.
+//// The return value occupies location 0.
+//@fragment
+//    fn fragShader(in1: A, @location(2) in2: f32) -> @location(0) vec4<f32> {
+//  // ...
+//}
+//

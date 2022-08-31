@@ -22,9 +22,16 @@ struct Input {
   std::string typeName;
 };
 
+struct InputAttribute {
+  std::string name;
+  std::string value;
+};
+
 struct FunctionInput {
   std::string name;
   std::string type;
+  //  std::unordered_map<std::string, std::string> attributes;
+  std::vector<InputAttribute> attributes;
 };
 
 struct Function {
@@ -48,7 +55,7 @@ class Reflect {
   //  [[nodiscard]] const Entry& entry(size_t i) const;
   [[nodiscard]] const auto& entries() const { return m_entries; }
 
-  const auto& functions() const {return m_functions;}
+  const auto& functions() const { return m_functions; }
 
   [[nodiscard]] const Function& fragment(size_t i) const;
   [[nodiscard]] const Function& vertex(size_t i) const;
