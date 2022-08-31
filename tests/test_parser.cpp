@@ -13,6 +13,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <stdexcept>
 
 using namespace std::string_literals;
 
@@ -267,6 +268,8 @@ TEST_CASE("Node navigation", "[parsing]") {
     REQUIRE(decl.childCount() == 6);
     REQUIRE(decl.namedChildCount() == 3);
 
+    REQUIRE_THROWS_AS(tree.rootNode().child(1), std::out_of_range);
+
     std::vector<std::string> childNames;
     std::vector<std::string> childTypes;
     for (uint32_t i = 0; i < decl.childCount(); i++) {
@@ -279,12 +282,17 @@ TEST_CASE("Node navigation", "[parsing]") {
     })S"});
 
     auto fname = decl.child(1);
-    REQUIRE(fname.prevNamedSibling().isNull());
+    REQUIRE_THROWS_AS(decl.child(0).prevSibling(), std::out_of_range);
+    REQUIRE_THROWS_AS(fname.prevNamedSibling(), std::out_of_range);
     REQUIRE(fname.nextNamedSibling() == decl.child(4));
-    REQUIRE(decl.child(0).prevSibling().isNull());
-    REQUIRE_FALSE(decl.child(0).prevSibling());
+    REQUIRE_THROWS_AS(decl.child(0).prevSibling(), std::out_of_range);
     REQUIRE_FALSE(decl.child(0).isNamed());
     REQUIRE(decl.child(1).isNamed());
+
+    REQUIRE_THROWS_AS(decl.child(decl.childCount() - 1).nextSibling(),
+                      std::out_of_range);
+    REQUIRE_THROWS_AS(decl.child(decl.childCount() - 1).nextNamedSibling(),
+                      std::out_of_range);
 
     REQUIRE(decl.child(0).str() == "fn"s);
     REQUIRE(decl.child(0).type() == "fn"s);
@@ -297,6 +305,8 @@ TEST_CASE("Node navigation", "[parsing]") {
     REQUIRE(decl.child("type").str() == "-> i32"s);
     auto body = decl.child("body").str();
     REQUIRE(body.find("return a + b;") != std::string::npos);
+
+    REQUIRE_THROWS_AS(decl.child("blubb"), std::out_of_range);
   }
 
   SECTION("Iterate children") {
@@ -307,7 +317,6 @@ TEST_CASE("Node navigation", "[parsing]") {
       REQUIRE(child == decl.child(i));
       i++;
     }
-
 
     i = 0;
     for (auto child : decl.namedChildren()) {

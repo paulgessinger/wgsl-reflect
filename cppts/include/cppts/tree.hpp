@@ -17,6 +17,10 @@ class Tree {
       : m_source{source}, m_parser{parser} {
     m_tree = ts_parser_parse_string(parser.parser(), nullptr, m_source.data(),
                                     static_cast<uint32_t>(m_source.size()));
+
+    if (ts_node_has_error(rootNode().getNode())) {
+      throw std::invalid_argument{"Input source could not be parsed"};
+    }
   }
 
   ~Tree() { ts_tree_delete(m_tree); }

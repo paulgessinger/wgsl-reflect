@@ -43,13 +43,25 @@ class Node {
 
   Node parent() { return Node{m_tree, ts_node_parent(m_node)}; }
 
-  Node child(uint32_t i) { return Node{m_tree, ts_node_child(m_node, i)}; }
+  Node child(uint32_t i) {
+    if (i >= childCount()) {
+      throw std::out_of_range{"Out of range child index"};
+    }
+    return Node{m_tree, ts_node_child(m_node, i)};
+  }
   Node child(const std::string& fieldName) {
-    return Node{m_tree, ts_node_child_by_field_name(m_node, fieldName.c_str(),
-                                                    fieldName.size())};
+    auto node = Node{m_tree, ts_node_child_by_field_name(
+                                 m_node, fieldName.c_str(), fieldName.size())};
+    if (node.isNull()) {
+      throw std::out_of_range{"No node with name: " + fieldName};
+    }
+    return node;
   }
 
   Node namedChild(uint32_t i) {
+    if (i >= namedChildCount()) {
+      throw std::out_of_range{"Out of range named child index"};
+    }
     return Node{m_tree, ts_node_named_child(m_node, i)};
   }
 
@@ -57,16 +69,37 @@ class Node {
 
   uint32_t namedChildCount() const { return ts_node_named_child_count(m_node); }
 
-  Node nextSibling() { return Node{m_tree, ts_node_next_sibling(m_node)}; }
+  Node nextSibling() {
 
-  Node prevSibling() { return Node{m_tree, ts_node_prev_sibling(m_node)}; }
+    auto node = Node{m_tree, ts_node_next_sibling(m_node)};
+    if (node.isNull()) {
+      throw std::out_of_range{"No next sibling"};
+    }
+    return node;
+  }
+
+  Node prevSibling() {
+    auto node = Node{m_tree, ts_node_prev_sibling(m_node)};
+    if (node.isNull()) {
+      throw std::out_of_range{"No prev sibling"};
+    }
+    return node;
+  }
 
   Node nextNamedSibling() {
-    return Node{m_tree, ts_node_next_named_sibling(m_node)};
+    auto node =  Node{m_tree, ts_node_next_named_sibling(m_node)};
+    if (node.isNull()) {
+      throw std::out_of_range{"No next named sibling"};
+    }
+    return node;
   }
 
   Node prevNamedSibling() {
-    return Node{m_tree, ts_node_prev_named_sibling(m_node)};
+    auto node = Node{m_tree, ts_node_prev_named_sibling(m_node)};
+    if (node.isNull()) {
+      throw std::out_of_range{"No prev named sibling"};
+    }
+    return node;
   }
 
   template <bool named>
