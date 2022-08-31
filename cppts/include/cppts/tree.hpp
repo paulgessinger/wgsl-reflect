@@ -14,14 +14,18 @@ class Node;
 class Tree {
  public:
   Tree(Parser& parser, std::string_view source)
-      : m_source{source}, m_parser{parser} {
-    m_tree = ts_parser_parse_string(parser.parser(), nullptr, m_source.data(),
-                                    static_cast<uint32_t>(m_source.size()));
+      : m_source{source}, m_parser{&parser} {
+    m_tree =
+        ts_parser_parse_string(m_parser->parser(), nullptr, m_source.data(),
+                               static_cast<uint32_t>(m_source.size()));
 
     if (ts_node_has_error(rootNode().getNode())) {
       throw std::invalid_argument{"Input source could not be parsed"};
     }
   }
+
+  Tree(const Tree& other) = default;
+  Tree& operator=(const Tree& other) = default;
 
   ~Tree() { ts_tree_delete(m_tree); }
 
@@ -29,7 +33,7 @@ class Tree {
 
   std::string_view source() const { return m_source; }
 
-  Parser& getParser() { return m_parser; }
+  Parser& getParser() { return *m_parser; }
 
   QueryCursor query(const std::string& query_string) {
     return rootNode().query(query_string);
@@ -37,7 +41,7 @@ class Tree {
 
  private:
   std::string_view m_source;
-  Parser& m_parser;
+  Parser* m_parser;
   TSTree* m_tree{nullptr};
 };
 
