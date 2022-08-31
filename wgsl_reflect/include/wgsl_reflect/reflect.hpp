@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <span>
 #include <string>
@@ -15,37 +16,31 @@ class Node;
 
 namespace wgsl_reflect {
 
-struct Input {
-  std::string name;
-  std::string location;
-  std::string locationType;
-  std::string typeName;
-};
-
 struct InputAttribute {
   std::string name;
   std::string value;
 };
 
-struct FunctionInput {
+struct Input {
   std::string name;
   std::string type;
-  //  std::unordered_map<std::string, std::string> attributes;
   std::vector<InputAttribute> attributes;
 };
 
-struct Function {
-  explicit Function(cppts::Node node);
+struct Struct {
+  explicit Struct(cppts::Node node);
+
   std::string name;
-  std::vector<FunctionInput> inputs;
+  std::vector<Input> members;
 };
 
-enum class EntryType { Vertex, Fragment, Compute };
-
-// struct Entry {
-//   EntryType type;
-//   Function& function;
-// };
+struct Function {
+  explicit Function(cppts::Node node,
+                    std::function<std::optional<Struct>(const std::string&)>
+                        structLookup = {});
+  std::string name;
+  std::vector<Input> inputs;
+};
 
 class Reflect {
  public:

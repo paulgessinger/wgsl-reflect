@@ -88,37 +88,69 @@ const Function& Reflect::compute(size_t i) const {
 
 Reflect::~Reflect() = default;
 
-Function::Function(cppts::Node node) {
-  auto cursor = node.query(R"Q(
-    (function_declaration
-      name: (identifier) @funcname
-      (parameter_list)? @params
-    ))Q");
-
-  cppts::Match match;
-  while (cursor.nextMatch(match)) {
-    name = match["funcname"].node().str();
-
-    if (match.has("params")) {
-      auto params = match["params"].node();
-      for (auto param : params.namedChildren()) {
-        FunctionInput input;
-        bool haveName = false;
-        for (auto pchild : param.namedChildren()) {
-          if (pchild.type() == "variable_identifier_declaration"s) {
-            haveName = true;
-            input.name = pchild.child("name").str();
-            input.type = pchild.child("type").str();
-          } else if (pchild.type() == "attribute"s) {
-            input.attributes.push_back(
-                InputAttribute{std::string{pchild.namedChild(0).str()},
-                               std::string{pchild.namedChild(1).str()}});
-          }
-        }
-        assert(haveName && "Did not find input name");
-        inputs.push_back(std::move(input));
-      }
+namespace {
+Input parseInput(cppts::Node node) {
+  Input input;
+  bool haveName = false;
+  for (auto pchild : node.namedChildren()) {
+    if (pchild.type() == "variable_identifier_declaration"s) {
+      haveName = true;
+      input.name = pchild.child("name").str();
+      input.type = pchild.child("type").str();
+    } else if (pchild.type() == "attribute"s) {
+      input.attributes.push_back(
+          InputAttribute{std::string{pchild.namedChild(0).str()},
+                         std::string{pchild.namedChild(1).str()}});
     }
   }
+  assert(haveName && "Did not find input name");
+  return input;
 }
+}  // namespace
+
+Function::Function(
+    cppts::Node node,
+    std::function<std::optional<Struct>(const std::string&)> structLookup) {
+  if (node.type() != "function_declaration"s) {
+    throw std::invalid_argument{"Given node is not a function declaration"};
+  }
+  name = node.child("name").str();
+
+  for (auto child : node.namedChildren()) {
+    if (child.type() != "parameter_list"s) {
+      continue;
+    }
+
+    for (auto param : child.namedChildren()) {
+      inputs.push_back(parseInput(param));
+      if (!structLookup) {
+        continue;
+      }
+      if (auto _struct = structLookup(inputs.back().type); _struct) {
+        inputs.pop_back();
+        for (auto member : _struct->members) {
+          inputs.push_back(member);
+        }
+      }
+    }
+
+    break;
+  }
+}
+
+Struct::Struct(cppts::Node node) {
+  if (node.type() != "struct_declaration"s) {
+    throw std::invalid_argument{"Given node is not a struct declaration"};
+  }
+
+  name = node.child("name").str();
+
+  for (auto child : node.namedChildren()) {
+    if (child.type() != "struct_member"s) {
+      continue;
+    }
+    members.push_back(parseInput(child));
+  }
+}
+
 }  // namespace wgsl_reflect
