@@ -46,6 +46,17 @@ struct Function {
   std::unordered_map<std::string, std::string> attributes;
 };
 
+struct Binding {
+  explicit Binding(cppts::Node node);
+
+  static constexpr uint32_t UNSET = std::numeric_limits<uint32_t>::max();
+
+  uint32_t binding{UNSET};
+  uint32_t group{UNSET};
+  std::string name{""};
+  std::string type{""};
+};
+
 class Reflect {
  public:
   explicit Reflect(const std::filesystem::path& source_file);
@@ -93,5 +104,7 @@ class Reflect {
 
   std::unordered_map<std::string, Function> m_functions;
   std::unordered_map<std::string, Structure> m_structures;
+
+  std::vector<std::vector<Binding>> m_groups;
 };
 }  // namespace wgsl_reflect

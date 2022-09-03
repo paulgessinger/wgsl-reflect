@@ -4,8 +4,10 @@
 #include "cppts/tree.hpp"
 #include <tree_sitter_wgsl.h>
 
+#include <charconv>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <sstream>
 
 using namespace std::string_literals;
@@ -67,10 +69,6 @@ void Reflect::parseEntrypoints() {
   while (cursor.nextMatch(match)) {
     auto func = match["thefunc"].node();
     std::string name{func.child("name").str()};
-    //    std::cout << name << std::endl;
-    //    std::cout << match["thefunc"].node() << std::endl;
-    //    std::cout << match["thefunc"].node().ast() << std::endl;
-    //    std::cout << " --- " << std::endl;
     for (auto child : match["thefunc"].node().namedChildren()) {
       if (child.type() != "attribute"s) {
         continue;
@@ -184,6 +182,77 @@ Structure::Structure(cppts::Node node) {
     }
     members.push_back(parseInput(child));
   }
+}
+
+Binding::Binding(cppts::Node node) {
+  if (node.type() != "global_variable_declaration"s) {
+    throw std::invalid_argument{
+        "Given node is not a global struct declaration"};
+  }
+
+  for (auto child : node.namedChildren()) {
+    std::string identifier;
+    if (child.type() == "attribute"s) {
+      identifier = child.namedChild(0).str();
+      if (identifier == "binding") {
+        auto vnode = child.namedChild(1);
+        if (vnode.type() != "int_literal"s) {
+          throw std::domain_error{identifier + " value of type"s +
+                                  vnode.type() + " unsupported"};
+        }
+        std::from_chars(vnode.str().begin(), vnode.str().end(), binding);
+      } else if (identifier == "group") {
+        auto vnode = child.namedChild(1);
+        if (vnode.type() != "int_literal"s) {
+          throw std::domain_error{identifier + " value of type"s +
+                                  vnode.type() + " unsupported"};
+        }
+        std::from_chars(vnode.str().begin(), vnode.str().end(), group);
+      }
+    } else if (child.type() == "variable_declaration"s) {
+      if (auto qual = child.firstChildOfType("variable_qualifier"); qual) {
+        if (auto address_space = qual->namedChild(0);
+            address_space && address_space.type() == "address_space"s) {
+          if (address_space.str() == "uniform" ||
+              address_space.str() == "storage") {
+            type = "buffer";
+          } else {
+            throw std::domain_error{"Unknown address_space: " +
+                                    std::string{address_space.str()}};
+          }
+        }
+
+        if (qual->namedChildCount() > 1) {
+          if (auto access_mode = qual->namedChild(1);
+              access_mode && access_mode.type() == "access_mode"s) {
+            // @TODO: Do something with this info
+          }
+        }
+      }
+      if (auto idecl =
+              child.firstChildOfType("variable_identifier_declaration");
+          idecl) {
+        name = idecl->child("name").str();
+        if (type == "") {  // no type yet, pick type from type decl
+          auto tdecl = idecl->child("type");
+          assert(tdecl.namedChildCount() == 0 &&
+                 "Type decl for builtin type expected");
+          std::string ptype{tdecl.str()};
+          static const std::regex type_regex{"^(\\w+) ?(?:<(\\w+)>)?$"};
+          std::smatch match;
+          if (!std::regex_match(ptype, match, type_regex)) {
+            throw std::domain_error{"Unable to parse type decl: " + ptype};
+          }
+          type = match[1].str();
+        }
+      }
+    }
+  }
+
+  assert(binding != UNSET && "Binding was not found");
+  assert(group != UNSET && "Group was not found");
+  assert(name != "" && "Name was not found");
+  assert(type != "" && "Type was not found");
 }
 
 }  // namespace wgsl_reflect
