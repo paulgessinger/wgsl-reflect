@@ -215,7 +215,7 @@ Binding::Binding(cppts::Node node) {
             address_space && address_space.type() == "address_space"s) {
           if (address_space.str() == "uniform" ||
               address_space.str() == "storage") {
-            type = "buffer";
+            bindingType = "buffer";
           } else {
             throw std::domain_error{"Unknown address_space: " +
                                     std::string{address_space.str()}};
@@ -233,8 +233,9 @@ Binding::Binding(cppts::Node node) {
               child.firstChildOfType("variable_identifier_declaration");
           idecl) {
         name = idecl->child("name").str();
-        if (type == "") {  // no type yet, pick type from type decl
-          auto tdecl = idecl->child("type");
+        auto tdecl = idecl->child("type");
+        if (bindingType ==
+            "") {  // no bindingType yet, pick bindingType from type decl
           assert(tdecl.namedChildCount() == 0 &&
                  "Type decl for builtin type expected");
           std::string ptype{tdecl.str()};
@@ -243,7 +244,11 @@ Binding::Binding(cppts::Node node) {
           if (!std::regex_match(ptype, match, type_regex)) {
             throw std::domain_error{"Unable to parse type decl: " + ptype};
           }
-          type = match[1].str();
+          bindingType = match[1].str();
+          type = bindingType;
+        } else {
+          auto identifier = tdecl.namedChild(0);
+          type = identifier.str();
         }
       }
     }
@@ -252,6 +257,7 @@ Binding::Binding(cppts::Node node) {
   assert(binding != UNSET && "Binding was not found");
   assert(group != UNSET && "Group was not found");
   assert(name != "" && "Name was not found");
+  assert(bindingType != "" && "bindingType was not found");
   assert(type != "" && "Type was not found");
 }
 

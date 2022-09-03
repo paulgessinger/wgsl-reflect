@@ -53,8 +53,9 @@ struct Binding {
 
   uint32_t binding{UNSET};
   uint32_t group{UNSET};
-  std::string name{""};
-  std::string type{""};
+  std::string name;
+  std::string bindingType;
+  std::string type;
 };
 
 class Reflect {

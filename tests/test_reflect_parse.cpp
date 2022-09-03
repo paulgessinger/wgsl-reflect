@@ -316,7 +316,8 @@ TEST_CASE("Parse bind groups", "[reflect]") {
     REQUIRE(binding.binding == 0);
     REQUIRE(binding.group == 0);
     REQUIRE(binding.name == "viewUniforms");
-    REQUIRE(binding.type == "buffer");
+    REQUIRE(binding.bindingType == "buffer");
+    REQUIRE(binding.type == "ViewUniforms");
   }
 
   SECTION("Storage") {
@@ -328,7 +329,8 @@ TEST_CASE("Parse bind groups", "[reflect]") {
     REQUIRE(binding.binding == 3);
     REQUIRE(binding.group == 2);
     REQUIRE(binding.name == "storage_buffer");
-    REQUIRE(binding.type == "buffer");
+    REQUIRE(binding.bindingType == "buffer");
+    REQUIRE(binding.type == "B");
   }
 
   SECTION("Sampler") {
@@ -338,6 +340,7 @@ TEST_CASE("Parse bind groups", "[reflect]") {
     REQUIRE(binding.binding == 2);
     REQUIRE(binding.group == 0);
     REQUIRE(binding.name == "u_sampler");
+    REQUIRE(binding.bindingType == "sampler");
     REQUIRE(binding.type == "sampler");
   }
 
@@ -349,6 +352,7 @@ TEST_CASE("Parse bind groups", "[reflect]") {
     REQUIRE(binding.binding == 3);
     REQUIRE(binding.group == 1);
     REQUIRE(binding.name == "u_texture");
+    REQUIRE(binding.bindingType == "texture_2d");
     REQUIRE(binding.type == "texture_2d");
   }
 
@@ -360,6 +364,7 @@ TEST_CASE("Parse bind groups", "[reflect]") {
     REQUIRE(binding.binding == 3);
     REQUIRE(binding.group == 1);
     REQUIRE(binding.name == "u_texture");
+    REQUIRE(binding.bindingType == "texture_2d");
     REQUIRE(binding.type == "texture_2d");
   }
 }
