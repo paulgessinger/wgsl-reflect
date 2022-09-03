@@ -340,3 +340,28 @@ TEST_CASE("Node navigation", "[parsing]") {
     REQUIRE(cursor.currentFieldName() == "name"s);
   }
 }
+
+TEST_CASE("Parsing functionality", "[parser]") {
+  {
+    cppts::Tree tree{parser, "var u_texture: texture_2d<f32>;"};
+
+    auto tdecl =
+        tree.rootNode().namedChild(0).namedChild(0).namedChild(0).namedChild(1);
+    CHECK(tdecl.type() == "type_declaration"s);
+    CHECK(tdecl.namedChildCount() == 0);
+    CHECK(tdecl.str() == "texture_2d<f32>");
+  }
+
+  {
+    cppts::Tree tree{parser, "var u_mat: mat4x4<f32>;"};
+
+    auto tdecl =
+        tree.rootNode().namedChild(0).namedChild(0).namedChild(0).namedChild(1);
+    CHECK(tdecl.type() == "type_declaration"s);
+    CHECK(tdecl.namedChildCount() == 1);
+    CHECK(tdecl.namedChild(0).type() == "type_declaration"s);
+
+    CHECK(tdecl.str() == "mat4x4<f32>");
+    CHECK(tdecl.namedChild(0).str() == "f32");
+  }
+}
