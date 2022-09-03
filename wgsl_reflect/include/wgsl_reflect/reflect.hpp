@@ -16,6 +16,8 @@ class Node;
 
 namespace wgsl_reflect {
 
+class Reflect;
+
 struct InputAttribute {
   std::string name;
   std::string value;
@@ -48,6 +50,11 @@ struct Function {
 
 struct Binding {
   explicit Binding(cppts::Node node);
+  Binding(const Binding& other) = default;
+
+  Binding& operator=(const Binding& other) = default;
+
+  bool operator==(const Binding& other) const = default;
 
   static constexpr uint32_t UNSET = std::numeric_limits<uint32_t>::max();
 
@@ -56,6 +63,19 @@ struct Binding {
   std::string name;
   std::string bindingType;
   std::string type;
+};
+
+struct BindGroup {
+  const auto& bindings() const { return m_bindings; }
+  const auto& binding(size_t i) const { return m_bindings.at(i); }
+
+  size_t size() const { return m_bindings.size(); }
+
+  const auto& operator[](size_t i) const { return binding(i); }
+
+ private:
+  friend Reflect;
+  std::vector<std::optional<Binding>> m_bindings;
 };
 
 class Reflect {
@@ -81,6 +101,9 @@ class Reflect {
   [[nodiscard]] const Function& vertex(size_t i) const;
   [[nodiscard]] const Function& compute(size_t i) const;
 
+  const auto& bindGroups() const { return m_bindGroups; }
+  const auto& bindGroup(size_t i) const { return m_bindGroups.at(i); }
+
   ~Reflect();
 
  private:
@@ -91,6 +114,8 @@ class Reflect {
   void parseFunctions();
 
   void parseEntrypoints();
+
+  void parseBindGroups();
 
   std::string m_source;
 
@@ -106,6 +131,6 @@ class Reflect {
   std::unordered_map<std::string, Function> m_functions;
   std::unordered_map<std::string, Structure> m_structures;
 
-  std::vector<std::vector<Binding>> m_groups;
+  std::vector<std::optional<BindGroup>> m_bindGroups;
 };
 }  // namespace wgsl_reflect

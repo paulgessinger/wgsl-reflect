@@ -102,3 +102,84 @@ TEST_CASE("Reflect entrypoints", "[reflect]") {
   REQUIRE(reflect.compute(0).name == "other");
   REQUIRE(reflect.compute(0).name == reflect.function("other").name);
 }
+
+TEST_CASE("Reflect bind groups", "[reflect]") {
+  wgsl_reflect::Reflect reflect{load_file("reference.wgsl")};
+
+  CHECK(reflect.bindGroups().size() == 3);
+  CHECK(reflect.bindGroup(0)->size() == 5);
+
+  {
+    auto g = reflect.bindGroup(0).value();
+
+    {
+      auto b = g.binding(0).value();
+      CHECK(b == g[0].value());
+      CHECK(b.name == "viewUniforms");
+      CHECK(b.type == "ViewUniforms");
+      CHECK(b.bindingType == "buffer");
+      CHECK(b.group == 0);
+    }
+
+    {
+      auto b = g[1].value();
+      CHECK(b == g.binding(1));
+      CHECK(b.name == "modelUniforms");
+      CHECK(b.type == "ModelUniforms");
+      CHECK(b.bindingType == "buffer");
+      CHECK(b.group == 0);
+    }
+
+    {
+      auto b = g[2].value();
+      CHECK(b == g.binding(2));
+      CHECK(b.name == "u_sampler");
+      CHECK(b.type == "sampler");
+      CHECK(b.bindingType == b.type);
+      CHECK(b.group == 0);
+    }
+
+    CHECK_FALSE(g[3].has_value());
+
+    {
+      auto b = g[4].value();
+      CHECK(b == g.binding(4));
+      CHECK(b.name == "u_texture");
+      CHECK(b.type == "texture_2d");
+      CHECK(b.bindingType == b.type);
+      CHECK(b.group == 0);
+    }
+
+    std::vector<size_t> notHasValue;
+    for (size_t i = 0; i < g.size(); i++) {
+      if (g[i].has_value()) {
+        CHECK(g[i]->binding == i);
+      } else {
+        notHasValue.push_back(i);
+      }
+    }
+    CHECK(notHasValue == std::vector<size_t>({3}));
+
+    CHECK_THROWS(g.binding(5));
+  }
+
+  CHECK_FALSE(reflect.bindGroup(1).has_value());
+
+  CHECK(reflect.bindGroup(2)->size() == 1);
+
+  {
+    auto g = reflect.bindGroup(2).value();
+
+    auto b = g[0].value();
+
+    CHECK_THROWS(g[1]);
+
+    CHECK(b.name == "storage_buffer");
+    CHECK(b.type == "B");
+    CHECK(b.bindingType == "buffer");
+    CHECK(b.group == 2);
+    CHECK(b.binding == 0);
+  }
+
+  CHECK_THROWS(reflect.bindGroup(3));
+}

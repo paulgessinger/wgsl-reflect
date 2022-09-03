@@ -31,6 +31,7 @@ void Reflect::initialize() {
   parseStructures();
   parseFunctions();
   parseEntrypoints();
+  parseBindGroups();
 }
 
 void Reflect::parseStructures() {
@@ -88,6 +89,28 @@ void Reflect::parseEntrypoints() {
         m_entries.compute.emplace_back(it->second);
       }
     }
+  }
+}
+
+void Reflect::parseBindGroups() {
+  auto cursor = m_tree->query("(global_variable_declaration) @thegroup");
+  cppts::Match match;
+  while (cursor.nextMatch(match)) {
+    auto gnode = match["thegroup"].node();
+    Binding binding{gnode};
+    if (binding.group + 1 > m_bindGroups.size()) {
+      m_bindGroups.resize(binding.group + 1, std::nullopt);
+    }
+
+    if (!m_bindGroups[binding.group].has_value()) {
+      m_bindGroups[binding.group] = BindGroup{};
+    }
+    auto& group = m_bindGroups[binding.group].value();
+    if (binding.binding + 1 > group.m_bindings.size()) {
+      group.m_bindings.resize(binding.binding + 1, std::nullopt);
+    }
+
+    group.m_bindings[binding.binding] = std::move(binding);
   }
 }
 
