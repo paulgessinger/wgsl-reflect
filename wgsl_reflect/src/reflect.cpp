@@ -340,14 +340,18 @@ void to_json(json& j, const std::vector<Input>& inputs) {
 }
 
 void to_json(nlohmann::json& j, const InputAttribute& attribute) {
-  j["name"] = attribute.name;
-  j["value"] = attribute.value;
+  //  j["name"] = attribute.name;
+  if (attribute.name == "location") {
+    j = std::stoi(attribute.value);
+  } else {
+    j = attribute.value;
+  }
 }
 
 void to_json(nlohmann::json& j, const std::vector<InputAttribute>& attributes) {
   j = json::object();
   for (const auto& attribute : attributes) {
-    j[attribute.name] = attribute.value;
+    j[attribute.name] = attribute;
   }
 }
 
@@ -376,13 +380,11 @@ void to_json(nlohmann::json& j, const BindGroup& bindGroup) {
 }
 
 void to_json(nlohmann::json& j, const Binding& binding) {
-
   j["binding"] = binding.binding;
   j["group"] = binding.group;
   j["name"] = binding.name;
   j["bindingType"] = binding.bindingType;
   j["type"] = binding.type;
-
 }
 
 }  // namespace wgsl_reflect
