@@ -11,6 +11,8 @@
 
 #include "util.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <stdexcept>
 
 using namespace std::string_literals;

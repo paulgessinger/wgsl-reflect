@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nlohmann/json_fwd.hpp>
+
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -23,11 +25,17 @@ struct InputAttribute {
   std::string value;
 };
 
+void to_json(nlohmann::json& j, const InputAttribute& attribute);
+void to_json(nlohmann::json& j, const std::vector<InputAttribute>& attributes);
+
 struct Input {
   std::string name;
   std::string type;
   std::vector<InputAttribute> attributes;
 };
+
+void to_json(nlohmann::json& j, const Input& input);
+void to_json(nlohmann::json& j, const std::vector<Input>& inputs);
 
 struct Structure {
   explicit Structure(cppts::Node node);
@@ -35,6 +43,8 @@ struct Structure {
   std::string name;
   std::vector<Input> members;
 };
+
+void to_json(nlohmann::json& j, const Structure& structure);
 
 struct Function {
   explicit Function(cppts::Node node,
@@ -47,6 +57,8 @@ struct Function {
   std::vector<Input> inputs;
   std::unordered_map<std::string, std::string> attributes;
 };
+
+void to_json(nlohmann::json& j, const Function& function);
 
 struct Binding {
   explicit Binding(cppts::Node node);
@@ -65,6 +77,8 @@ struct Binding {
   std::string type;
 };
 
+void to_json(nlohmann::json& j, const Binding& binding);
+
 struct BindGroup {
   const auto& bindings() const { return m_bindings; }
   const auto& binding(size_t i) const { return m_bindings.at(i); }
@@ -78,13 +92,12 @@ struct BindGroup {
   std::vector<std::optional<Binding>> m_bindings;
 };
 
+void to_json(nlohmann::json& j, const BindGroup& bindGroup);
+
 class Reflect {
  public:
   explicit Reflect(const std::filesystem::path& source_file);
   explicit Reflect(const std::string& source);
-
-  //  [[nodiscard]] const Entry& entry(size_t i) const;
-  [[nodiscard]] const auto& entries() const { return m_entries; }
 
   const auto& functions() const { return m_functions; }
 
@@ -97,6 +110,7 @@ class Reflect {
     return m_structures.at(name);
   }
 
+  [[nodiscard]] const auto& entries() const { return m_entries; }
   [[nodiscard]] const Function& fragment(size_t i) const;
   [[nodiscard]] const Function& vertex(size_t i) const;
   [[nodiscard]] const Function& compute(size_t i) const;
@@ -133,4 +147,7 @@ class Reflect {
 
   std::vector<std::optional<BindGroup>> m_bindGroups;
 };
+
+void to_json(nlohmann::json& j, const Reflect& reflect);
+
 }  // namespace wgsl_reflect

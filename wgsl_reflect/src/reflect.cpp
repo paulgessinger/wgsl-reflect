@@ -4,6 +4,8 @@
 #include "cppts/tree.hpp"
 #include <tree_sitter_wgsl.h>
 
+#include <nlohmann/json.hpp>
+
 #include <charconv>
 #include <fstream>
 #include <iostream>
@@ -11,6 +13,7 @@
 #include <sstream>
 
 using namespace std::string_literals;
+using namespace nlohmann;
 
 namespace wgsl_reflect {
 Reflect::Reflect(const std::filesystem::path& source_file) {
@@ -282,6 +285,104 @@ Binding::Binding(cppts::Node node) {
   assert(name != "" && "Name was not found");
   assert(bindingType != "" && "bindingType was not found");
   assert(type != "" && "Type was not found");
+}
+
+void to_json(json& j, const Reflect& reflect) {
+  j["structures"] = json::object();
+  for (const auto& [key, structure] : reflect.structures()) {
+    j["structures"][key] = structure;
+  }
+
+  j["functions"] = json::object();
+  for (const auto& [key, func] : reflect.functions()) {
+    j["functions"][key] = func;
+  }
+  j["entries"] = json::object({{"vertex", json::array()},
+                               {"fragment", json::array()},
+                               {"compute", json::array()}});
+
+  auto entries = [&](const std::string& name, const auto& items) {
+    for (const auto& entry : items) {
+      const Function& func = entry;
+      j["entries"][name].push_back(func.name);
+    }
+  };
+  entries("vertex", reflect.entries().vertex);
+  entries("fragment", reflect.entries().fragment);
+  entries("compute", reflect.entries().compute);
+
+  j["bindgroups"] = json::array();
+  for (const auto& bindGroup : reflect.bindGroups()) {
+    if (bindGroup.has_value()) {
+      j["bindgroups"].push_back(*bindGroup);
+    } else {
+      j["bindgroups"].push_back(nullptr);
+    }
+  }
+}
+
+void to_json(json& j, const Structure& structure) {
+  j["name"] = structure.name;
+  j["members"] = structure.members;
+}
+
+void to_json(json& j, const Input& input) {
+  j["name"] = input.name;
+  j["type"] = input.type;
+  j["attributes"] = input.attributes;
+}
+
+void to_json(json& j, const std::vector<Input>& inputs) {
+  j = json::array();
+  for (const auto& input : inputs) {
+    j.push_back(input);
+  }
+}
+
+void to_json(nlohmann::json& j, const InputAttribute& attribute) {
+  j["name"] = attribute.name;
+  j["value"] = attribute.value;
+}
+
+void to_json(nlohmann::json& j, const std::vector<InputAttribute>& attributes) {
+  j = json::object();
+  for (const auto& attribute : attributes) {
+    j[attribute.name] = attribute.value;
+  }
+}
+
+void to_json(nlohmann::json& j, const Function& function) {
+  j["name"] = function.name;
+  j["inputs"] = function.inputs;
+  j["attributes"] = json::object();
+  for (auto& [key, value] : function.attributes) {
+    if (value == "") {
+      j["attributes"][key] = true;
+    } else {
+      j["attributes"][key] = value;
+    }
+  }
+}
+
+void to_json(nlohmann::json& j, const BindGroup& bindGroup) {
+  j = json::array();
+  for (const auto& binding : bindGroup.bindings()) {
+    if (binding.has_value()) {
+      j.push_back(*binding);
+    } else {
+      j.push_back(nullptr);
+    }
+  }
+}
+
+void to_json(nlohmann::json& j, const Binding& binding) {
+
+  j["binding"] = binding.binding;
+  j["group"] = binding.group;
+  j["name"] = binding.name;
+  j["bindingType"] = binding.bindingType;
+  j["type"] = binding.type;
+
 }
 
 }  // namespace wgsl_reflect
