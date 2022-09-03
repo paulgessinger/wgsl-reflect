@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tree_sitter/api.h>
+#include <optional>
 #include <ostream>
 #include <string_view>
 
@@ -24,7 +25,7 @@ class Node {
   unsigned int length() const { return end() - start(); }
 
   std::string_view str() const;
-  std::string ast() const;
+  std::string ast(size_t indent = 2) const;
 
   TSNode getNode() { return m_node; }
 
@@ -75,6 +76,15 @@ class Node {
   Node nextSibling() { return Node{*m_tree, ts_node_next_sibling(m_node)}; }
 
   Node prevSibling() { return Node{*m_tree, ts_node_prev_sibling(m_node)}; }
+
+  std::optional<Node> firstChildOfType(const std::string& type) {
+    for (auto child : children()) {
+      if (child.type() == type) {
+        return child;
+      }
+    }
+    return std::nullopt;
+  }
 
   Node nextNamedSibling() {
     return Node{*m_tree, ts_node_next_named_sibling(m_node)};
