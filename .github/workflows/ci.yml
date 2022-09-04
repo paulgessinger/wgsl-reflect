@@ -30,11 +30,13 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           brew install ninja
+          echo "build/bin/wgsl_reflect" >> $GITHUB_ENV
 
       - name: Install dependencies
         if: startsWith(matrix.os, 'windows')
         run: |
           choco install ninja
+          echo "build/bin/wgsl_reflect.exe" >> $GITHUB_ENV
 
       - name: Install dependencies
         if: startsWith(matrix.os, 'ubuntu')
@@ -42,6 +44,7 @@ jobs:
           sudo apt-get install -y ninja-build make gcc-10
           echo "CXX=g++-10" >> $GITHUB_ENV
           echo "CC=gcc-10" >> $GITHUB_ENV
+          echo "build/bin/wgsl_reflect" >> $GITHUB_ENV
 
       - uses: ilammy/msvc-dev-cmd@v1
         if: startsWith(matrix.os, 'windows')
@@ -65,5 +68,8 @@ jobs:
       - name: Tests
         run: >
           cmake --build build -- test
-          
+
+      - name: Run CLI
+        run: >
+          $EXE tests/reference.wgsl
 
