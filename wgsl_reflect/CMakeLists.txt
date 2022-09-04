@@ -1,5 +1,6 @@
 include(FetchContent)
 FetchContent_Declare(tree-sitter-wgsl
+        DOWNLOAD_EXTRACT_TIMESTAMP true
         URL https://github.com/szebniok/tree-sitter-wgsl/archive/272e89e.zip
         URL_HASH SHA256=7d2c69ecbb09c1c6f7b4a6c627c1d7e55cf5f342fdcfd14aff28d4b8d78a33ac
         )

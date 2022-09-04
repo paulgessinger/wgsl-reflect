@@ -2,3 +2,4 @@
 cmake-build-debug
 build
 .vscode/settings.json
+cmake-build-debug-wsl

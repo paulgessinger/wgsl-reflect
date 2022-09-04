@@ -1,0 +1,95 @@
+name: Builds
+
+on: 
+  - push
+  - pull_request
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  HOMEBREW_NO_INSTALL_CLEANUP: 1
+  CCACHE_DIR: ${{ github.workspace }}/ccache
+  CCACHE_MAXSIZE: 250M
+  CCACHE_KEY_SUFFIX: r1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          lfs: false
+
+      - name: Install dependencies
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install ninja ccache
+          echo "EXE=build/bin/wgsl_reflect" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          choco install ninja ccache
+          echo "EXE=build/bin/wgsl_reflect.exe" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get install -y ninja-build make gcc-10 ccache
+          echo "CXX=g++-10" >> $GITHUB_ENV
+          echo "CC=gcc-10" >> $GITHUB_ENV
+          echo "EXE=build/bin/wgsl_reflect" >> $GITHUB_ENV
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: startsWith(matrix.os, 'windows')
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace  }}/ccache
+          key: ${{ runner.os  }}_ccache_${{ env.CCACHE_KEY_SUFFIX }}_${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os  }}_ccache_${{ env.CCACHE_KEY_SUFFIX }}_
+
+
+
+      - name: Configure
+        run: >
+          cmake -B build -S $PWD -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_TESTS=ON
+      - name: Build
+        run: |
+          ccache -z
+          cmake --build build
+
+      - name: ccache stats
+        run: ccache -s
+
+      - name: Tests
+        run: >
+          cmake --build build -- test
+
+      - name: Run CLI
+        run: >
+          $EXE tests/reference.wgsl
+
+
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: sudo apt-get install -y clang-format
+      - run: .github/check_format.sh .
+
+
