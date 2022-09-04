@@ -40,6 +40,8 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt-get install -y ninja-build make gcc-10
+          echo "CXX=g++-10" >> $GITHUB_ENV
+          echo "CC=gcc-10" >> $GITHUB_ENV
 
       - uses: ilammy/msvc-dev-cmd@v1
         if: startsWith(matrix.os, 'windows')
