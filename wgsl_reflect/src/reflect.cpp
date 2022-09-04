@@ -73,7 +73,7 @@ void Reflect::parseEntrypoints() {
   while (cursor.nextMatch(match)) {
     auto func = match["thefunc"].node();
     std::string name{func.child("name").str()};
-    for (auto child : match["thefunc"].node().namedChildren()) {
+    for (auto child : func.namedChildren()) {
       if (child.type() != "attribute"s) {
         continue;
       }
