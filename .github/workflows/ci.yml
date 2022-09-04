@@ -66,8 +66,10 @@ jobs:
         run: >
           cmake -B build -S $PWD -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_TESTS=ON
       - name: Build
-        run: >
+        run: |
+          ccache -z
           cmake --build build
+          ccache -s
 
       - name: Tests
         run: >
