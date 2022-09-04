@@ -46,7 +46,7 @@ jobs:
 
       - name: Configure
         run: >
-          cmake -B build -S $PWD -GNinja
+          cmake -B build -S $PWD -GNinja -DBUILD_TESTS=ON
       - name: Build
         run: >
           cmake --build build
