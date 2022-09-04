@@ -69,7 +69,9 @@ jobs:
         run: |
           ccache -z
           cmake --build build
-          ccache -s
+
+      - name: ccache stats
+        run: ccache -s
 
       - name: Tests
         run: >
