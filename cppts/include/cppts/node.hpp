@@ -55,7 +55,8 @@ class Node {
   }
   Node child(const std::string& fieldName) {
     auto node = Node{*m_tree, ts_node_child_by_field_name(
-                                  m_node, fieldName.c_str(), fieldName.size())};
+                                  m_node, fieldName.c_str(),
+                                  static_cast<uint32_t>(fieldName.size()))};
     if (node.isNull()) {
       throw std::out_of_range{"No node with name: " + fieldName};
     }

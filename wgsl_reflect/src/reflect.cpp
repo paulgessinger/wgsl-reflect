@@ -226,14 +226,14 @@ Binding::Binding(cppts::Node node) {
           throw std::domain_error{identifier + " value of type"s +
                                   vnode.type() + " unsupported"};
         }
-        std::from_chars(vnode.str().begin(), vnode.str().end(), binding);
+        binding = std::stoi(std::string{vnode.str()});
       } else if (identifier == "group") {
         auto vnode = child.namedChild(1);
         if (vnode.type() != "int_literal"s) {
           throw std::domain_error{identifier + " value of type"s +
                                   vnode.type() + " unsupported"};
         }
-        std::from_chars(vnode.str().begin(), vnode.str().end(), group);
+        group = std::stoi(std::string{vnode.str()});
       }
     } else if (child.type() == "variable_declaration"s) {
       if (auto qual = child.firstChildOfType("variable_qualifier"); qual) {

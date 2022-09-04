@@ -2,6 +2,7 @@
 
 #include "cppts/tree.hpp"
 
+#include <functional>
 #include <sstream>
 
 namespace cppts {
