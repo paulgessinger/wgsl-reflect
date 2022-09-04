@@ -19,90 +19,90 @@ using namespace std::string_literals;
 
 TEST_CASE("Reflect construction", "[reflect]") {
   std::string source = load_file("simple.wgsl");
-  REQUIRE_NOTHROW(wgsl_reflect::Reflect{source});
-  REQUIRE_NOTHROW(wgsl_reflect::Reflect{test_file_path("simple.wgsl")});
+  CHECK_NOTHROW(wgsl_reflect::Reflect{source});
+  CHECK_NOTHROW(wgsl_reflect::Reflect{test_file_path("simple.wgsl")});
 
-  REQUIRE_THROWS_AS(wgsl_reflect::Reflect{std::filesystem::path{"invalid"}},
-                    std::ios_base::failure);
+  CHECK_THROWS_AS(wgsl_reflect::Reflect{std::filesystem::path{"invalid"}},
+                  std::ios_base::failure);
 }
 
 TEST_CASE("Reflect structs", "[reflect]") {
   wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
 
-  REQUIRE(reflect.structures().size() == 2);
+  CHECK(reflect.structures().size() == 2);
 
   auto vertexInput = reflect.structure("VertexInput");
-  REQUIRE(vertexInput.name == "VertexInput");
-  REQUIRE(vertexInput.members.size() == 2);
+  CHECK(vertexInput.name == "VertexInput");
+  CHECK(vertexInput.members.size() == 2);
 
   auto vertexOutput = reflect.structure("VertexOutput");
-  REQUIRE(vertexOutput.name == "VertexOutput");
-  REQUIRE(vertexOutput.members.size() == 2);
+  CHECK(vertexOutput.name == "VertexOutput");
+  CHECK(vertexOutput.members.size() == 2);
 }
 
 TEST_CASE("Reflect functions", "[reflect]") {
   wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
 
-  REQUIRE(reflect.functions().size() == 3);
+  CHECK(reflect.functions().size() == 3);
 
   auto vs_main = reflect.function("vs_main");
-  REQUIRE(vs_main.name == "vs_main");
-  REQUIRE(vs_main.inputs.size() == 2);
+  CHECK(vs_main.name == "vs_main");
+  CHECK(vs_main.inputs.size() == 2);
 
-  REQUIRE(vs_main.inputs[0].name == "position");
-  REQUIRE(vs_main.inputs[0].type == "vec3<f32>");
-  REQUIRE(vs_main.inputs[0].attributes.size() == 1);
-  REQUIRE(vs_main.inputs[0].attributes[0].name == "location");
-  REQUIRE(vs_main.inputs[0].attributes[0].value == "0");
+  CHECK(vs_main.inputs[0].name == "position");
+  CHECK(vs_main.inputs[0].type == "vec3<f32>");
+  CHECK(vs_main.inputs[0].attributes.size() == 1);
+  CHECK(vs_main.inputs[0].attributes[0].name == "location");
+  CHECK(vs_main.inputs[0].attributes[0].value == "0");
 
-  REQUIRE(vs_main.inputs[1].name == "color");
-  REQUIRE(vs_main.inputs[1].type == "vec3<f32>");
-  REQUIRE(vs_main.inputs[1].attributes.size() == 1);
-  REQUIRE(vs_main.inputs[1].attributes[0].name == "location");
-  REQUIRE(vs_main.inputs[1].attributes[0].value == "1");
+  CHECK(vs_main.inputs[1].name == "color");
+  CHECK(vs_main.inputs[1].type == "vec3<f32>");
+  CHECK(vs_main.inputs[1].attributes.size() == 1);
+  CHECK(vs_main.inputs[1].attributes[0].name == "location");
+  CHECK(vs_main.inputs[1].attributes[0].value == "1");
 
   auto fs_main = reflect.function("fs_main");
-  REQUIRE(fs_main.name == "fs_main");
-  REQUIRE(fs_main.inputs.size() == 2);
+  CHECK(fs_main.name == "fs_main");
+  CHECK(fs_main.inputs.size() == 2);
 
-  REQUIRE(fs_main.inputs[0].name == "clip_position");
-  REQUIRE(fs_main.inputs[0].type == "vec4<f32>");
-  REQUIRE(fs_main.inputs[0].attributes.size() == 1);
-  REQUIRE(fs_main.inputs[0].attributes[0].name == "builtin");
-  REQUIRE(fs_main.inputs[0].attributes[0].value == "position");
+  CHECK(fs_main.inputs[0].name == "clip_position");
+  CHECK(fs_main.inputs[0].type == "vec4<f32>");
+  CHECK(fs_main.inputs[0].attributes.size() == 1);
+  CHECK(fs_main.inputs[0].attributes[0].name == "builtin");
+  CHECK(fs_main.inputs[0].attributes[0].value == "position");
 
-  REQUIRE(fs_main.inputs[1].name == "color");
-  REQUIRE(fs_main.inputs[1].type == "vec3<f32>");
-  REQUIRE(fs_main.inputs[1].attributes.size() == 1);
-  REQUIRE(fs_main.inputs[1].attributes[0].name == "location");
-  REQUIRE(fs_main.inputs[1].attributes[0].value == "0");
+  CHECK(fs_main.inputs[1].name == "color");
+  CHECK(fs_main.inputs[1].type == "vec3<f32>");
+  CHECK(fs_main.inputs[1].attributes.size() == 1);
+  CHECK(fs_main.inputs[1].attributes[0].name == "location");
+  CHECK(fs_main.inputs[1].attributes[0].value == "0");
 
   auto other = reflect.function("other");
-  REQUIRE(other.name == "other");
-  REQUIRE(other.inputs.size() == 2);
+  CHECK(other.name == "other");
+  CHECK(other.inputs.size() == 2);
 
-  REQUIRE(other.inputs[0].name == "a");
-  REQUIRE(other.inputs[0].type == "i32");
-  REQUIRE(other.inputs[0].attributes.size() == 0);
+  CHECK(other.inputs[0].name == "a");
+  CHECK(other.inputs[0].type == "i32");
+  CHECK(other.inputs[0].attributes.size() == 0);
 
-  REQUIRE(other.inputs[1].name == "b");
-  REQUIRE(other.inputs[1].type == "i32");
-  REQUIRE(other.inputs[1].attributes.size() == 0);
+  CHECK(other.inputs[1].name == "b");
+  CHECK(other.inputs[1].type == "i32");
+  CHECK(other.inputs[1].attributes.size() == 0);
 }
 
 TEST_CASE("Reflect entrypoints", "[reflect]") {
   wgsl_reflect::Reflect reflect{load_file("simple.wgsl")};
 
-  REQUIRE(reflect.entries().vertex.size() == 1);
-  REQUIRE(reflect.entries().fragment.size() == 1);
-  REQUIRE(reflect.entries().compute.size() == 1);
+  CHECK(reflect.entries().vertex.size() == 1);
+  CHECK(reflect.entries().fragment.size() == 1);
+  CHECK(reflect.entries().compute.size() == 1);
 
-  REQUIRE(reflect.vertex(0).name == "vs_main");
-  REQUIRE(reflect.vertex(0).name == reflect.function("vs_main").name);
-  REQUIRE(reflect.fragment(0).name == "fs_main");
-  REQUIRE(reflect.fragment(0).name == reflect.function("fs_main").name);
-  REQUIRE(reflect.compute(0).name == "other");
-  REQUIRE(reflect.compute(0).name == reflect.function("other").name);
+  CHECK(reflect.vertex(0).name == "vs_main");
+  CHECK(reflect.vertex(0).name == reflect.function("vs_main").name);
+  CHECK(reflect.fragment(0).name == "fs_main");
+  CHECK(reflect.fragment(0).name == reflect.function("fs_main").name);
+  CHECK(reflect.compute(0).name == "other");
+  CHECK(reflect.compute(0).name == reflect.function("other").name);
 }
 
 TEST_CASE("Reflect bind groups", "[reflect]") {

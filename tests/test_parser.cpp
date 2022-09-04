@@ -38,26 +38,26 @@ TEST_CASE("Query API", "[parsing]") {
   SECTION("Verbose API") {
     auto query = cppts::Query::create(tree_sitter_wgsl(), query_string);
     cppts::QueryCursor queryCursor = query->exec(tree.rootNode());
-    REQUIRE(countMatches(queryCursor) == 4);
+    CHECK(countMatches(queryCursor) == 4);
   }
 
   SECTION("Tree query") {
     auto cursor = tree.query(query_string);
-    REQUIRE(countMatches(cursor) == 4);
+    CHECK(countMatches(cursor) == 4);
   }
 
   SECTION("Node query") {
     auto cursor = tree.rootNode().query(query_string);
-    REQUIRE(countMatches(cursor) == 4);
+    CHECK(countMatches(cursor) == 4);
   }
 
   SECTION("Alternative match getter") {
     auto cursor = tree.rootNode().query(query_string);
-    REQUIRE(cursor.nextMatch());
-    REQUIRE(cursor.nextMatch());
-    REQUIRE(cursor.nextMatch());
-    REQUIRE(cursor.nextMatch());
-    REQUIRE_FALSE(cursor.nextMatch());
+    CHECK(cursor.nextMatch());
+    CHECK(cursor.nextMatch());
+    CHECK(cursor.nextMatch());
+    CHECK(cursor.nextMatch());
+    CHECK_FALSE(cursor.nextMatch());
   }
 }
 
@@ -73,16 +73,16 @@ TEST_CASE("Query captures", "[parsing]") {
 
     cppts::Match match;
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "vs_main");
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "vs_main");
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "other");
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "other");
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "fs_main");
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "fs_main");
 
-    REQUIRE(!queryCursor.nextMatch(match));
+    CHECK(!queryCursor.nextMatch(match));
   }
 
   SECTION("Extra capture") {
@@ -93,23 +93,23 @@ TEST_CASE("Query captures", "[parsing]") {
     auto queryCursor = tree.query(query_string);
 
     cppts::Match match;
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "vs_main");
-    REQUIRE(match["functype"].node().str() == "vertex");
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "vs_main");
+    CHECK(match["functype"].node().str() == "vertex");
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "other");
-    REQUIRE(match["functype"].node().str() == "compute");
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "other");
+    CHECK(match["functype"].node().str() == "compute");
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "other");
-    REQUIRE(match["functype"].node().str() == "workgroup_size");
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "other");
+    CHECK(match["functype"].node().str() == "workgroup_size");
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "fs_main");
-    REQUIRE(match["functype"].node().str() == "fragment");
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "fs_main");
+    CHECK(match["functype"].node().str() == "fragment");
 
-    REQUIRE(!queryCursor.nextMatch(match));
+    CHECK(!queryCursor.nextMatch(match));
   }
 
   SECTION("Optional capture") {
@@ -121,33 +121,33 @@ TEST_CASE("Query captures", "[parsing]") {
 
     cppts::Match match;
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "vs_main");
-    REQUIRE(match["functype"].node().str() == "vertex");
-    REQUIRE(match.has("funcname"));
-    REQUIRE(match.has("functype"));
-    REQUIRE(match.maybe_capture("functype") != std::nullopt);
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "vs_main");
+    CHECK(match["functype"].node().str() == "vertex");
+    CHECK(match.has("funcname"));
+    CHECK(match.has("functype"));
+    CHECK(match.maybe_capture("functype") != std::nullopt);
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "other");
-    REQUIRE(match.has("funcname"));
-    REQUIRE(match.has("functype"));
-    REQUIRE(match.maybe_capture("functype") != std::nullopt);
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "other");
+    CHECK(match.has("funcname"));
+    CHECK(match.has("functype"));
+    CHECK(match.maybe_capture("functype") != std::nullopt);
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "other");
-    REQUIRE(match.has("funcname"));
-    REQUIRE(match.has("functype"));
-    REQUIRE(match.maybe_capture("functype") != std::nullopt);
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "other");
+    CHECK(match.has("funcname"));
+    CHECK(match.has("functype"));
+    CHECK(match.maybe_capture("functype") != std::nullopt);
 
-    REQUIRE(queryCursor.nextMatch(match));
-    REQUIRE(match["funcname"].node().str() == "fs_main");
-    REQUIRE(match["functype"].node().str() == "fragment");
-    REQUIRE(match.has("funcname"));
-    REQUIRE(match.has("functype"));
-    REQUIRE(match.maybe_capture("functype") != std::nullopt);
+    CHECK(queryCursor.nextMatch(match));
+    CHECK(match["funcname"].node().str() == "fs_main");
+    CHECK(match["functype"].node().str() == "fragment");
+    CHECK(match.has("funcname"));
+    CHECK(match.has("functype"));
+    CHECK(match.maybe_capture("functype") != std::nullopt);
 
-    REQUIRE_FALSE(queryCursor.nextMatch(match));
+    CHECK_FALSE(queryCursor.nextMatch(match));
   }
 
   SECTION("Repeating capture") {
@@ -171,19 +171,19 @@ TEST_CASE("Query captures", "[parsing]") {
         ))Q");
 
     auto a = cursor.nextMatch().value();
-    REQUIRE(a["funcname"].node().str() == "other");
-    REQUIRE(a.has("param"));
-    REQUIRE(a["param.name"].node().str() == "a");
-    REQUIRE(a["param.type"].node().str() == "i32");
+    CHECK(a["funcname"].node().str() == "other");
+    CHECK(a.has("param"));
+    CHECK(a["param.name"].node().str() == "a");
+    CHECK(a["param.type"].node().str() == "i32");
 
     auto b = cursor.nextMatch().value();
-    REQUIRE(b["funcname"].node().str() == "other");
-    REQUIRE(a.has("param"));
-    REQUIRE(b.has("param"));
-    REQUIRE(b["param.name"].node().str() == "b");
-    REQUIRE(b["param.type"].node().str() == "f32");
+    CHECK(b["funcname"].node().str() == "other");
+    CHECK(a.has("param"));
+    CHECK(b.has("param"));
+    CHECK(b["param.name"].node().str() == "b");
+    CHECK(b["param.type"].node().str() == "f32");
 
-    REQUIRE_FALSE(cursor.nextMatch());
+    CHECK_FALSE(cursor.nextMatch());
   }
 
   SECTION("Repeating capture, no match") {
@@ -205,7 +205,7 @@ TEST_CASE("Query captures", "[parsing]") {
             )
           ))Q");
 
-    REQUIRE(countMatches(cursor) == 0);
+    CHECK(countMatches(cursor) == 0);
   }
 }
 
@@ -223,30 +223,30 @@ TEST_CASE("Multiple attributes", "[parsing]") {
   )Q");
 
   auto match = cursor.nextMatch().value();
-  REQUIRE(match["attribute"].node().str() == "compute");
+  CHECK(match["attribute"].node().str() == "compute");
 
   {
     auto _cursor =
         match["attr"].node().query("(attribute (identifier) (_)? @args)");
     auto a = _cursor.nextMatch().value();
-    REQUIRE_FALSE(a.has("args"));
+    CHECK_FALSE(a.has("args"));
   }
 
   match = cursor.nextMatch().value();
-  REQUIRE(match["attribute"].node().str() == "workgroup_size");
+  CHECK(match["attribute"].node().str() == "workgroup_size");
 
   {
     auto _cursor =
         match["attr"].node().query("(attribute (identifier) (_)? @arg)");
     auto _match = _cursor.nextMatch().value();
-    REQUIRE(_match.has("arg"));
-    REQUIRE(_match["arg"].node().str() == "8");
+    CHECK(_match.has("arg"));
+    CHECK(_match["arg"].node().str() == "8");
     _match = _cursor.nextMatch().value();
-    REQUIRE(_match.has("arg"));
-    REQUIRE(_match["arg"].node().str() == "4");
+    CHECK(_match.has("arg"));
+    CHECK(_match["arg"].node().str() == "4");
     _match = _cursor.nextMatch().value();
-    REQUIRE(_match.has("arg"));
-    REQUIRE(_match["arg"].node().str() == "1");
+    CHECK(_match.has("arg"));
+    CHECK(_match["arg"].node().str() == "1");
   }
 }
 
@@ -258,15 +258,15 @@ TEST_CASE("Node navigation", "[parsing]") {
   cppts::Tree tree{parser, source};
 
   SECTION("Direct") {
-    REQUIRE_FALSE(tree.rootNode().isNull());
-    REQUIRE(tree.rootNode().childCount() == 1);
+    CHECK_FALSE(tree.rootNode().isNull());
+    CHECK(tree.rootNode().childCount() == 1);
     auto decl = tree.rootNode().child(0);
-    REQUIRE_FALSE(decl.isNull());
-    REQUIRE(decl.type() == "function_declaration"s);
-    REQUIRE(decl.childCount() == 6);
-    REQUIRE(decl.namedChildCount() == 3);
+    CHECK_FALSE(decl.isNull());
+    CHECK(decl.type() == "function_declaration"s);
+    CHECK(decl.childCount() == 6);
+    CHECK(decl.namedChildCount() == 3);
 
-    REQUIRE_THROWS_AS(tree.rootNode().child(1), std::out_of_range);
+    CHECK_THROWS_AS(tree.rootNode().child(1), std::out_of_range);
 
     std::vector<std::string> childNames;
     std::vector<std::string> childTypes;
@@ -274,35 +274,35 @@ TEST_CASE("Node navigation", "[parsing]") {
       childNames.emplace_back(decl.child(i).str());
       childTypes.push_back(decl.child(i).type());
     }
-    REQUIRE(childNames ==
-            std::vector<std::string>{"fn", "other", "(", ")", "-> i32", R"S({
+    CHECK(childNames ==
+          std::vector<std::string>{"fn", "other", "(", ")", "-> i32", R"S({
         return a + b;
     })S"});
 
     auto fname = decl.child(1);
-    REQUIRE(fname.prevNamedSibling().isNull());
-    REQUIRE(fname.nextNamedSibling() == decl.child(4));
-    REQUIRE(decl.child(0).prevSibling().isNull());
-    REQUIRE_FALSE(decl.child(0).prevSibling());
-    REQUIRE_FALSE(decl.child(0).isNamed());
-    REQUIRE(decl.child(1).isNamed());
+    CHECK(fname.prevNamedSibling().isNull());
+    CHECK(fname.nextNamedSibling() == decl.child(4));
+    CHECK(decl.child(0).prevSibling().isNull());
+    CHECK_FALSE(decl.child(0).prevSibling());
+    CHECK_FALSE(decl.child(0).isNamed());
+    CHECK(decl.child(1).isNamed());
 
-    REQUIRE_FALSE(decl.child(decl.childCount() - 1).nextSibling());
-    REQUIRE_FALSE(decl.child(decl.childCount() - 1).nextNamedSibling());
+    CHECK_FALSE(decl.child(decl.childCount() - 1).nextSibling());
+    CHECK_FALSE(decl.child(decl.childCount() - 1).nextNamedSibling());
 
-    REQUIRE(decl.child(0).str() == "fn"s);
-    REQUIRE(decl.child(0).type() == "fn"s);
-    REQUIRE(decl.namedChild(0) == decl.child("name"));
+    CHECK(decl.child(0).str() == "fn"s);
+    CHECK(decl.child(0).type() == "fn"s);
+    CHECK(decl.namedChild(0) == decl.child("name"));
 
-    REQUIRE(decl.child(2) == decl.child(1).nextSibling());
-    REQUIRE(decl.child(2) == decl.child(3).prevSibling());
+    CHECK(decl.child(2) == decl.child(1).nextSibling());
+    CHECK(decl.child(2) == decl.child(3).prevSibling());
 
-    REQUIRE(decl.child("name").str() == "other"s);
-    REQUIRE(decl.child("type").str() == "-> i32"s);
+    CHECK(decl.child("name").str() == "other"s);
+    CHECK(decl.child("type").str() == "-> i32"s);
     auto body = decl.child("body").str();
-    REQUIRE(body.find("return a + b;") != std::string::npos);
+    CHECK(body.find("return a + b;") != std::string::npos);
 
-    REQUIRE_THROWS_AS(decl.child("blubb"), std::out_of_range);
+    CHECK_THROWS_AS(decl.child("blubb"), std::out_of_range);
   }
 
   SECTION("Iterate children") {
@@ -310,34 +310,34 @@ TEST_CASE("Node navigation", "[parsing]") {
 
     uint32_t i = 0;
     for (auto child : decl.children()) {
-      REQUIRE(child == decl.child(i));
+      CHECK(child == decl.child(i));
       i++;
     }
 
     i = 0;
     for (auto child : decl.namedChildren()) {
-      REQUIRE(child == decl.namedChild(i));
+      CHECK(child == decl.namedChild(i));
       i++;
     }
   }
 
   SECTION("Cursor") {
     auto cursor = tree.rootNode().cursor();
-    REQUIRE(cursor.currentNode() == tree.rootNode());
-    REQUIRE_FALSE(cursor.currentNode().isNull());
+    CHECK(cursor.currentNode() == tree.rootNode());
+    CHECK_FALSE(cursor.currentNode().isNull());
 
     cursor.firstChild();
-    REQUIRE(cursor.currentNode() == tree.rootNode().child(0));
+    CHECK(cursor.currentNode() == tree.rootNode().child(0));
     cursor.firstChild();
-    REQUIRE(cursor.currentNode() == tree.rootNode().child(0).child(0));
+    CHECK(cursor.currentNode() == tree.rootNode().child(0).child(0));
     cursor.nextSibling();
-    REQUIRE(cursor.currentNode() == tree.rootNode().child(0).child(1));
+    CHECK(cursor.currentNode() == tree.rootNode().child(0).child(1));
     cursor.parent();
-    REQUIRE(cursor.currentNode() == tree.rootNode().child(0));
-    REQUIRE(cursor.currentFieldName() == nullptr);
+    CHECK(cursor.currentNode() == tree.rootNode().child(0));
+    CHECK(cursor.currentFieldName() == nullptr);
     cursor.firstChild().nextSibling();
-    REQUIRE(cursor.currentNode().str() == "other"s);
-    REQUIRE(cursor.currentFieldName() == "name"s);
+    CHECK(cursor.currentNode().str() == "other"s);
+    CHECK(cursor.currentFieldName() == "name"s);
   }
 }
 
