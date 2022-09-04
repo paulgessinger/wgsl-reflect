@@ -1,6 +1,7 @@
 include(FetchContent)
 
 FetchContent_Declare(tree-sitter
+        DOWNLOAD_EXTRACT_TIMESTAMP true
         URL https://github.com/tree-sitter/tree-sitter/archive/refs/tags/v0.20.6.tar.gz
         URL_HASH SHA256=4d37eaef8a402a385998ff9aca3e1043b4a3bba899bceeff27a7178e1165b9de
         )
