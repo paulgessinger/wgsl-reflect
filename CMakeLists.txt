@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 option("USE_SYSTEM_JSON" OFF)
 option("USE_SYSTEM_CLI11" OFF)
+option("USE_SYSTEM_CATCH2" OFF)
 
 if (USE_SYSTEM_JSON)
     find_package(nlohmann_json CONFIG REQUIRED)
