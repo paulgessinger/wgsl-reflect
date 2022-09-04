@@ -14,7 +14,7 @@ defaults:
     shell: bash
 
 jobs:
-  job:
+  build:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -24,7 +24,7 @@ jobs:
           - ubuntu-latest
           - windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
           lfs: false
@@ -76,4 +76,14 @@ jobs:
       - name: Run CLI
         run: >
           $EXE tests/reference.wgsl
+
+
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: sudo apt-get install -y clang-format
+      - run: .github/check_format.sh
+
 
