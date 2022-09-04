@@ -4,6 +4,18 @@ cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_CXX_STANDARD 20)
 
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "/W3 ${CMAKE_CXX_FLAGS}")
+    if (DEFINED ENV{CI})
+        set(CMAKE_CXX_FLAGS "/WX ${CMAKE_CXX_FLAGS}")
+    endif ()
+else ()
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wshadow -Wno-unused-local-typedefs ${CMAKE_CXX_FLAGS}")
+    if (DEFINED ENV{CI})
+        set(CMAKE_CXX_FLAGS "-Werror ${CMAKE_CXX_FLAGS}")
+    endif ()
+endif ()
+
 option("USE_SYSTEM_JSON" OFF)
 option("USE_SYSTEM_CLI11" OFF)
 option("USE_SYSTEM_CATCH2" OFF)
