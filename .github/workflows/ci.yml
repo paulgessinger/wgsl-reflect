@@ -55,7 +55,7 @@ jobs:
       - name: Cache build
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/build/_deps
+          path: ${{ github.workspace  }}/ccache
           key: ${{ runner.os  }}_ccache_${{ env.CCACHE_KEY_SUFFIX }}_${{ github.sha }}
           restore-keys: |
             ${{ runner.os  }}_ccache_${{ env.CCACHE_KEY_SUFFIX }}_
