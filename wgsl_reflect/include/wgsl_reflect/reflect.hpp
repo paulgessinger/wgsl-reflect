@@ -51,7 +51,8 @@ struct Function {
                     std::function<std::optional<Structure>(const std::string&)>
                         structLookup = {});
 
-  std::optional<std::string_view> attribute(const std::string& name) const;
+  std::optional<std::string_view> attribute(
+      const std::string& attrib_name) const;
 
   std::string name;
   std::vector<Input> inputs;

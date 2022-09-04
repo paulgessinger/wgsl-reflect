@@ -161,8 +161,8 @@ Function::Function(
 
   for (auto child : node.namedChildren()) {
     if (child.type() == "attribute"s) {
-      std::string name{child.namedChild(0).str()};
-      std::string value = "";
+      std::string attrib_name{child.namedChild(0).str()};
+      std::string value;
       for (auto next = child.namedChild(0).nextSibling(); !next.isNull();
            next = next.nextSibling()) {
         if (next.str() == "("s || next.str() == ")"s) {
@@ -170,7 +170,7 @@ Function::Function(
         }
         value += next.str();
       }
-      attributes.emplace(name, value);
+      attributes.emplace(attrib_name, value);
     } else if (child.type() == "parameter_list"s) {
       for (auto param : child.namedChildren()) {
         inputs.push_back(parseInput(param));
@@ -188,8 +188,8 @@ Function::Function(
   }
 }
 std::optional<std::string_view> Function::attribute(
-    const std::string& name) const {
-  if (auto it = attributes.find(name); it != attributes.end()) {
+    const std::string& attrib_name) const {
+  if (auto it = attributes.find(attrib_name); it != attributes.end()) {
     return it->second;
   }
   return std::nullopt;
@@ -217,9 +217,8 @@ Binding::Binding(cppts::Node node) {
   }
 
   for (auto child : node.namedChildren()) {
-    std::string identifier;
     if (child.type() == "attribute"s) {
-      identifier = child.namedChild(0).str();
+      std::string identifier{child.namedChild(0).str()};
       if (identifier == "binding") {
         auto vnode = child.namedChild(1);
         if (vnode.type() != "int_literal"s) {
