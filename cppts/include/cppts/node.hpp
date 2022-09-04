@@ -3,6 +3,7 @@
 #include <tree_sitter/api.h>
 #include <optional>
 #include <ostream>
+#include <ranges>
 #include <string_view>
 
 namespace cppts {
@@ -78,6 +79,16 @@ class Node {
 
   Node prevSibling() { return Node{*m_tree, ts_node_prev_sibling(m_node)}; }
 
+  auto children() {
+    return std::ranges::iota_view{0u, childCount()} |
+           std::views::transform([&](uint32_t i) { return child(i); });
+  }
+
+  auto namedChildren() {
+    return std::ranges::iota_view{0u, namedChildCount()} |
+           std::views::transform([&](uint32_t i) { return namedChild(i); });
+  }
+
   std::optional<Node> firstChildOfType(const std::string& type) {
     for (auto child : children()) {
       if (child.type() == type) {
@@ -93,52 +104,6 @@ class Node {
 
   Node prevNamedSibling() {
     return Node{*m_tree, ts_node_prev_named_sibling(m_node)};
-  }
-
-  template <bool named>
-  class ChildIterator {
-   public:
-    ChildIterator(Node& node, uint32_t index) : m_node{node}, m_index{index} {}
-
-    bool operator==(const ChildIterator& other) const {
-      return other.m_node == m_node && other.m_index == m_index;
-    }
-
-    ChildIterator& operator++() {
-      m_index++;
-      return *this;
-    }
-
-    Node operator*() {
-      if constexpr (named) {
-        return m_node.namedChild(m_index);
-      } else {
-        return m_node.child(m_index);
-      }
-    }
-
-   private:
-    Node& m_node;
-    uint32_t m_index{0};
-  };
-
-  template <typename It>
-  struct IteratorPair {
-    It _begin;
-    It _end;
-
-    It begin() { return _begin; }
-    It end() { return _end; }
-  };
-
-  IteratorPair<ChildIterator<false>> children() {
-    return {ChildIterator<false>{*this, 0},
-            ChildIterator<false>{*this, childCount()}};
-  }
-
-  IteratorPair<ChildIterator<true>> namedChildren() {
-    return {ChildIterator<true>{*this, 0},
-            ChildIterator<true>{*this, namedChildCount()}};
   }
 
  private:
