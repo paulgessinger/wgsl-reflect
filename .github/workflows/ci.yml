@@ -29,25 +29,24 @@ jobs:
       - name: Install dependencies
         if: startsWith(matrix.os, 'macos')
         run: |
-          brew install ninja catch2
+          brew install ninja
 
       - name: Install dependencies
         if: startsWith(matrix.os, 'windows')
         run: |
           choco install ninja
-          vcpkg install catch2
 
       - name: Install dependencies
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          sudo apt-get install -y ninja-build make libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa
+          sudo apt-get install -y ninja-build make 
 
       - uses: ilammy/msvc-dev-cmd@v1
         if: startsWith(matrix.os, 'windows')
 
       - name: Configure
         run: >
-          cmake -B build -S $PWD -GNinja -DBUILD_TESTS=ON -DUSE_SYSTEM_CATCH2=ON
+          cmake -B build -S $PWD -GNinja -DBUILD_TESTS=ON
       - name: Build
         run: >
           cmake --build build
