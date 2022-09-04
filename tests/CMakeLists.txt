@@ -15,7 +15,7 @@ function(_add_test name file)
     add_executable(${name} ${file})
     target_link_libraries(${name} PRIVATE Catch2::Catch2WithMain)
     target_link_libraries(${name} PUBLIC cppts tree-sitter-wgsl wgsl_reflect::wgsl_reflect)
-    #    target_compile_definitions(${name} PRIVATE CATCH_CONFIG_MAIN)
+    target_compile_definitions(${name} PRIVATE TEST_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}")
     catch_discover_tests(${name})
 endfunction()
 

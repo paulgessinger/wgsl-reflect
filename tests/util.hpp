@@ -6,7 +6,7 @@
 
 inline std::filesystem::path test_file_path(const std::filesystem::path& fn) {
   static const std::filesystem::path test_dir =
-      std::filesystem::path{__FILE__}.parent_path();
+      std::filesystem::canonical(std::filesystem::path{TEST_DIRECTORY});
   return test_dir / fn;
 }
 
