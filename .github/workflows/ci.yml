@@ -64,7 +64,7 @@ jobs:
 
       - name: Configure
         run: >
-          cmake -B build -S $PWD -GNinja -DCMAKE_CXX_LAUNCHER=ccache -DBUILD_TESTS=ON
+          cmake -B build -S $PWD -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_TESTS=ON
       - name: Build
         run: >
           cmake --build build
