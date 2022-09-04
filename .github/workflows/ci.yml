@@ -18,7 +18,7 @@ jobs:
       matrix:
         os:
           - macos-latest
-          #          - ubuntu-latest
+          - ubuntu-latest
           - windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          sudo apt-get install -y ninja-build make 
+          sudo apt-get install -y ninja-build make gcc-10
 
       - uses: ilammy/msvc-dev-cmd@v1
         if: startsWith(matrix.os, 'windows')
@@ -50,4 +50,9 @@ jobs:
       - name: Build
         run: >
           cmake --build build
+
+      - name: Tests
+        run: >
+          cmake --build build -- test
+          
 
