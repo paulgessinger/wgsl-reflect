@@ -46,6 +46,15 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         if: startsWith(matrix.os, 'windows')
 
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/build/_deps
+          key: ${{ runner.os  }}-deps-${{ matrix.image }}_r1_${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os  }}-deps-${{ matrix.image }}_r1_
+
+
       - name: Configure
         run: >
           cmake -B build -S $PWD -GNinja -DBUILD_TESTS=ON
