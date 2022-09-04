@@ -86,6 +86,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt-get install -y clang-format
-      - run: .github/check_format.sh
+      - run: .github/check_format.sh .
 
 
