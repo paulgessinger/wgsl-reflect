@@ -13,8 +13,8 @@ class Node;
 
 class Tree {
  public:
-  Tree(Parser& parser, std::string_view source)
-      : m_source{source}, m_parser{&parser} {
+  Tree(Parser& parser, std::string source)
+      : m_source{std::move(source)}, m_parser{&parser} {
     m_tree =
         ts_parser_parse_string(m_parser->parser(), nullptr, m_source.data(),
                                static_cast<uint32_t>(m_source.size()));
@@ -40,7 +40,7 @@ class Tree {
   }
 
  private:
-  std::string_view m_source;
+  std::string m_source;
   Parser* m_parser;
   TSTree* m_tree{nullptr};
 };
