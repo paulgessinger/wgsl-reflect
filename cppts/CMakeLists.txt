@@ -20,15 +20,20 @@ add_library(tree-sitter STATIC ${tsfiles})
 target_include_directories(tree-sitter PUBLIC ${tree-sitter_SOURCE_DIR}/lib/include)
 set_property(TARGET tree-sitter PROPERTY C_STANDARD 99)
 
+FetchContent_Declare(range-v3
+        GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+        GIT_TAG 0.12.0)
+
+FetchContent_MakeAvailable(range-v3)
+
 if (MSVC)
     set(CMAKE_C_FLAGS_INIT "${old_flags}")
-    set(CMAKE_C_FlAGS "HURZ")
 endif ()
 
 file(GLOB cpptsfiles include/cppts/*.hpp src/cppts/*.cpp)
 add_library(cppts STATIC ${cpptsfiles})
 set_target_properties(cppts PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(cppts PUBLIC include)
-target_link_libraries(cppts PUBLIC tree-sitter)
+target_link_libraries(cppts PUBLIC tree-sitter range-v3::range-v3)
 
 add_library(cppts::cppts ALIAS cppts)
