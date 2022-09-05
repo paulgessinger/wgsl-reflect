@@ -1,9 +1,10 @@
 #pragma once
 
+#include <range/v3/view.hpp>
 #include <tree_sitter/api.h>
+
 #include <optional>
 #include <ostream>
-#include <ranges>
 #include <string_view>
 
 namespace cppts {
@@ -80,13 +81,13 @@ class Node {
   Node prevSibling() { return Node{*m_tree, ts_node_prev_sibling(m_node)}; }
 
   auto children() {
-    return std::ranges::iota_view{0u, childCount()} |
-           std::views::transform([&](uint32_t i) { return child(i); });
+    return ranges::iota_view{0u, childCount()} |
+           ranges::views::transform([&](uint32_t i) { return child(i); });
   }
 
   auto namedChildren() {
-    return std::ranges::iota_view{0u, namedChildCount()} |
-           std::views::transform([&](uint32_t i) { return namedChild(i); });
+    return ranges::iota_view{0u, namedChildCount()} |
+           ranges::views::transform([&](uint32_t i) { return namedChild(i); });
   }
 
   std::optional<Node> firstChildOfType(const std::string& type) {
