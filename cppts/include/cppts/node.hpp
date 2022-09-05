@@ -81,12 +81,12 @@ class Node {
   Node prevSibling() { return Node{*m_tree, ts_node_prev_sibling(m_node)}; }
 
   auto children() {
-    return ranges::iota_view{0u, childCount()} |
+    return ranges::iota_view<uint32_t, uint32_t>{0u, childCount()} |
            ranges::views::transform([&](uint32_t i) { return child(i); });
   }
 
   auto namedChildren() {
-    return ranges::iota_view{0u, namedChildCount()} |
+    return ranges::iota_view<uint32_t, uint32_t>{0u, namedChildCount()} |
            ranges::views::transform([&](uint32_t i) { return namedChild(i); });
   }
 
